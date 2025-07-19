@@ -32,6 +32,42 @@ abstract class FlightDataSource {
   Stream<List<AlertModel>> observeAlerts();
 }
 
+FlightStatusModel _createFlightStatusModel(
+    FlightStatus status, {
+      FlightPhase? phase,
+      DateTime? endTime,
+      double? currentAltitude,
+      double? maxAltitude,
+      double? groundSpeed,
+      double? verticalSpeed,
+      double? fuelLevel,
+      bool? hasActiveWarnings,
+      bool? hasActiveCriticalAlerts,
+      bool? isEmergencyMode,
+      double? latitude,
+      double? longitude,
+      bool? hasGPSSignal,
+    }) {
+  return FlightStatusModel(
+    flightId: status.flightId,
+    startTime: status.startTime,
+    endTime: endTime ?? status.endTime,
+    currentPhase: phase ?? status.currentPhase,
+    maxAltitude: maxAltitude ?? status.maxAltitude,
+    currentAltitude: currentAltitude ?? status.currentAltitude,
+    groundSpeed: groundSpeed ?? status.groundSpeed,
+    verticalSpeed: verticalSpeed ?? status.verticalSpeed,
+    fuelLevel: fuelLevel ?? status.fuelLevel,
+    hasActiveWarnings: hasActiveWarnings ?? status.hasActiveWarnings,
+    hasActiveCriticalAlerts: hasActiveCriticalAlerts ?? status.hasActiveCriticalAlerts,
+    isEmergencyMode: isEmergencyMode ?? status.isEmergencyMode,
+    latitude: latitude ?? status.latitude,
+    longitude: longitude ?? status.longitude,
+    hasGPSSignal: hasGPSSignal ?? status.hasGPSSignal,
+  );
+}
+
+
 class MockFlightDataSource implements FlightDataSource {
   // Mevcut uçuş durumu
   FlightStatusModel _currentFlightStatus = FlightStatusModel(
@@ -266,7 +302,8 @@ class MockFlightDataSource implements FlightDataSource {
       maxAltitude = currentAltitude;
     }
 
-    _currentFlightStatus = _currentFlightStatus.copyWith(
+    _currentFlightStatus = _createFlightStatusModel(
+      _currentFlightStatus,
       currentAltitude: currentAltitude,
       maxAltitude: maxAltitude,
       groundSpeed: _getSensorValue(SensorType.speed),
@@ -284,8 +321,9 @@ class MockFlightDataSource implements FlightDataSource {
     // Eğer iniş aşamasında ve yükseklik 0'a yakınsa, uçuşu tamamla
     if (_currentFlightStatus.currentPhase == FlightPhase.landing &&
         _getSensorValue(SensorType.altitude) < 5.0) {
-      _currentFlightStatus = _currentFlightStatus.copyWith(
-        currentPhase: FlightPhase.completed,
+      _currentFlightStatus = _createFlightStatusModel(
+        _currentFlightStatus,
+        phase: FlightPhase.completed,
         endTime: DateTime.now(),
         currentAltitude: 0.0,
         groundSpeed: 0.0,
@@ -406,7 +444,8 @@ class MockFlightDataSource implements FlightDataSource {
     }
 
     // Uçuş durumunu güncelle
-    _currentFlightStatus = _currentFlightStatus.copyWith(
+    _currentFlightStatus = _createFlightStatusModel(
+      _currentFlightStatus,
       hasActiveWarnings: hasWarnings || hasCritical,
       hasActiveCriticalAlerts: hasCritical,
     );
@@ -515,8 +554,9 @@ class MockFlightDataSource implements FlightDataSource {
   Future<FlightStatusModel> updateFlightPhase(FlightPhase phase) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
-    _currentFlightStatus = _currentFlightStatus.copyWith(
-      currentPhase: phase,
+    _currentFlightStatus = _createFlightStatusModel(
+      _currentFlightStatus,
+      phase: phase,
     );
 
     return _currentFlightStatus;
@@ -605,8 +645,9 @@ class MockFlightDataSource implements FlightDataSource {
   Future<FlightStatusModel> endFlight() async {
     await Future.delayed(const Duration(seconds: 1));
 
-    _currentFlightStatus = _currentFlightStatus.copyWith(
-      currentPhase: FlightPhase.completed,
+    _currentFlightStatus = _createFlightStatusModel(
+      _currentFlightStatus,
+      phase: FlightPhase.completed,
       endTime: DateTime.now(),
     );
 
@@ -620,7 +661,8 @@ class MockFlightDataSource implements FlightDataSource {
   Future<FlightStatusModel> toggleEmergencyMode(bool isActive) async {
     await Future.delayed(const Duration(milliseconds: 500));
 
-    _currentFlightStatus = _currentFlightStatus.copyWith(
+    _currentFlightStatus = _createFlightStatusModel(
+      _currentFlightStatus,
       isEmergencyMode: isActive,
     );
 

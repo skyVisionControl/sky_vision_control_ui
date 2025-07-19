@@ -11,6 +11,8 @@ import 'package:kapadokya_balon_app/presentation/pages/onboarding/face_recogniti
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/alcohol_test_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/placeholder_pages.dart';
 
+import '../pages/flight/sensor_dashboard_page.dart';
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   // İleride auth state listener eklenebilir
   return GoRouter(

@@ -97,7 +97,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
                 backgroundColor: _getCriticalAlertsColor(state.activeAlerts),
                 child: const Icon(Icons.notifications),
               ),
-              onPressed: () => context.push(RouteConstants.alert),
+              onPressed: () => context.push(RouteConstants.alerts),
               tooltip: 'Uyarılar',
             ),
           ],
@@ -168,7 +168,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
             children: [
               // Yükseklik göstergesi
               AltitudeIndicator(
-                value: _getSensorValue(SensorType.altitude),
+                altitude: _getSensorValue(SensorType.altitude),
                 minValue: _getSensorMinValue(SensorType.altitude),
                 maxValue: _getSensorMaxValue(SensorType.altitude),
                 alertLevel: _getSensorAlertLevel(SensorType.altitude),
@@ -177,7 +177,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
 
               // Yön göstergesi
               DirectionIndicator(
-                value: _getSensorValue(SensorType.direction),
+                direction: _getSensorValue(SensorType.direction),
                 alertLevel: _getSensorAlertLevel(SensorType.direction),
               ),
 
@@ -257,7 +257,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(opacity: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 5.0,
             offset: const Offset(0, -2),
           ),
@@ -292,7 +292,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
                   child: AppButton(
                     text: 'Uçuşu Sonlandır',
                     icon: Icons.flight_land,
-                    onPressed: state.isEndingFlight ? null : _confirmEndFlight,
+                    onPressed: state.isEndingFlight ? () {} : _confirmEndFlight,
                     isLoading: state.isEndingFlight,
                     type: AppButtonType.primary,
                   ),
@@ -313,7 +313,7 @@ class _SensorDashboardPageState extends ConsumerState<SensorDashboardPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         decoration: BoxDecoration(
-          color: hasCritical ? AppColors.error.withValues(opacity: 0.1) : AppColors.warning.withValues(opacity: 0.1),
+          color: hasCritical ? AppColors.error.withOpacity(0.1) : AppColors.warning.withOpacity(0.1),
           borderRadius: BorderRadius.circular(8.0),
         ),
         child: Row(

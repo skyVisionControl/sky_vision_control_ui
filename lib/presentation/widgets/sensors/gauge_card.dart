@@ -1,47 +1,40 @@
-// gauge_card.dart
-//
-// Sensör verilerini gösteren kart bileşeni.
-// Analog gösterge ve dijital değer ile sensör bilgilerini görselleştirir.
-
-
+// gauge_card.dart - tam düzeltilmiş versiyon
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
-import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
-import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
 
 class GaugeCard extends StatelessWidget {
   final String title;
+  final IconData icon;
   final double value;
+  final String unit;
   final double minValue;
   final double maxValue;
-  final String unit;
-  final Color gaugeColor;
-  final bool isWarning;
-  final List<GaugeRange>? ranges;
+  final AlertLevel alertLevel;
+  final int decimalPlaces;
+  final bool isInverted;
 
   const GaugeCard({
     Key? key,
     required this.title,
+    required this.icon,
     required this.value,
-    this.minValue = 0,
-    required this.maxValue,
     required this.unit,
-    this.gaugeColor = AppColors.primary,
-    this.isWarning = false,
-    this.ranges,
+    required this.minValue,
+    required this.maxValue,
+    required this.alertLevel,
+    this.decimalPlaces = 0,
+    this.isInverted = false,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final valuePercent = ((value - minValue) / (maxValue - minValue))
+        .clamp(0.0, 1.0);
+
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: isWarning
-            ? const BorderSide(color: AppColors.error, width: 2)
-            : BorderSide.none,
-      ),
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: Container(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,73 +45,76 @@ class GaugeCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyles.gaugeTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                // Uyarı durumunda yanıp sönen ikon
-                if (isWarning)
-                  _buildWarningIndicator(),
+                Icon(
+                  icon,
+                  color: _getAlertColor(),
+                  size: 20,
+                ),
               ],
             ),
-            const SizedBox(height: 8),
 
-            // Gösterge
-            SizedBox(
-              height: 120,
-              child: SfRadialGauge(
-                axes: <RadialAxis>[
-                  RadialAxis(
-                    minimum: minValue,
-                    maximum: maxValue,
-                    startAngle: 150,
-                    endAngle: 30,
-                    radiusFactor: 0.8,
-                    showLabels: true,
-                    showTicks: true,
-                    axisLineStyle: AxisLineStyle(
-                      thickness: 0.1,
-                      color: gaugeColor.withOpacity(0.3),
-                      thicknessUnit: GaugeSizeUnit.factor,
-                    ),
-                    pointers: <GaugePointer>[
-                      NeedlePointer(
-                        value: value,
-                        needleColor: gaugeColor,
-                        knobStyle: KnobStyle(
-                          knobRadius: 0.06,
-                          color: gaugeColor,
-                        ),
-                        tailStyle: const TailStyle(
-                          width: 3,
-                          length: 0.15,
-                        ),
-                        needleLength: 0.7,
-                        needleStartWidth: 1,
-                        needleEndWidth: 3,
-                      ),
-                    ],
-                    ranges: ranges,
-                  ),
-                ],
-              ),
-            ),
-
-            // Değer ve birim
-            Center(
+            // Ana değer
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    value.toStringAsFixed(1),
-                    style: TextStyles.gaugeValue.copyWith(
-                      color: isWarning ? AppColors.error : AppColors.textPrimary,
+                    value.toStringAsFixed(decimalPlaces),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: _getAlertColor(),
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     unit,
-                    style: TextStyles.gaugeUnit,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // İlerleme çubuğu
+            LinearProgressIndicator(
+              value: isInverted ? 1.0 - valuePercent : valuePercent,
+              backgroundColor: Colors.grey.withOpacity(0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(_getProgressColor()),
+              minHeight: 8,
+              borderRadius: BorderRadius.circular(4),
+            ),
+
+            // Min/Max değerler
+            Padding(
+              padding: const EdgeInsets.only(top: 4.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${minValue.toStringAsFixed(decimalPlaces)} $unit',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  Text(
+                    '${maxValue.toStringAsFixed(decimalPlaces)} $unit',
+                    style: const TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey,
+                    ),
                   ),
                 ],
               ),
@@ -129,20 +125,36 @@ class GaugeCard extends StatelessWidget {
     );
   }
 
-  Widget _buildWarningIndicator() {
-    return TweenAnimationBuilder<double>(
-      tween: Tween<double>(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 800),
-      builder: (context, value, child) {
-        return Opacity(
-          opacity: value > 0.5 ? 2 - (value * 2) : value * 2,
-          child: const Icon(
-            Icons.warning_amber_rounded,
-            color: AppColors.error,
-            size: 20,
-          ),
-        );
-      },
-    );
+  Color _getAlertColor() {
+    switch (alertLevel) {
+      case AlertLevel.warning:
+        return AppColors.warning;
+      case AlertLevel.critical:
+        return AppColors.error;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  Color _getProgressColor() {
+    if (isInverted) {
+      // Düşük değerler daha tehlikeli (yakıt seviyesi gibi)
+      if (value < minValue + (maxValue - minValue) * 0.2) {
+        return AppColors.error;
+      } else if (value < minValue + (maxValue - minValue) * 0.4) {
+        return AppColors.warning;
+      } else {
+        return AppColors.success;
+      }
+    } else {
+      // Yüksek değerler daha tehlikeli (sıcaklık gibi)
+      if (value > maxValue - (maxValue - minValue) * 0.2) {
+        return AppColors.error;
+      } else if (value > maxValue - (maxValue - minValue) * 0.4) {
+        return AppColors.warning;
+      } else {
+        return AppColors.primary;
+      }
+    }
   }
 }

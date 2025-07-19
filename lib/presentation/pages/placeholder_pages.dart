@@ -77,8 +77,6 @@ class ApprovalWaitingPage extends StatelessWidget {
   }
 }
 
- */
-
 // Flight Pages
 class SensorDashboardPage extends StatelessWidget {
   const SensorDashboardPage({Key? key}) : super(key: key);
@@ -90,6 +88,8 @@ class SensorDashboardPage extends StatelessWidget {
     );
   }
 }
+
+ */
 
 class AlertPage extends StatelessWidget {
   const AlertPage({Key? key}) : super(key: key);

@@ -1,40 +1,28 @@
-// direction_indicator.dart
-//
-// Balon yönünü gösteren pusula bileşeni.
-// Derece cinsinden yön ve kardinal yön bilgisini görselleştirir.
-
-
+// direction_indicator.dart - tam düzeltilmiş versiyon
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
-import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
+import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
 
 class DirectionIndicator extends StatelessWidget {
-  final double direction; // 0-360 derece
-  final double size;
-  final bool isWarning;
+  final double direction;
+  final AlertLevel alertLevel;
 
   const DirectionIndicator({
     Key? key,
     required this.direction,
-    this.size = 160,
-    this.isWarning = false,
+    required this.alertLevel,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: isWarning
-            ? const BorderSide(color: AppColors.error, width: 2)
-            : BorderSide.none,
-      ),
-      child: Padding(
+      clipBehavior: Clip.antiAlias,
+      child: Container(
         padding: const EdgeInsets.all(12.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Başlık
             Row(
@@ -42,107 +30,98 @@ class DirectionIndicator extends StatelessWidget {
               children: [
                 const Text(
                   'Yön',
-                  style: TextStyles.gaugeTitle,
-                ),
-                if (isWarning)
-                  const Icon(
-                    Icons.warning_amber_rounded,
-                    color: AppColors.error,
-                    size: 20,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
+                Icon(
+                  Icons.explore,
+                  color: _getAlertColor(),
+                  size: 20,
+                ),
               ],
             ),
-            const SizedBox(height: 12),
 
-            // Pusula
-            SizedBox(
-              width: size,
-              height: size,
-              child: Stack(
-                alignment: Alignment.center,
+            // Ana değer
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Pusula çerçevesi
-                  Container(
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(
-                        color: AppColors.directionGauge.withOpacity(0.5),
-                        width: 2,
-                      ),
+                  Text(
+                    '${direction.toStringAsFixed(0)}°',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: _getAlertColor(),
                     ),
                   ),
-
-                  // Pusula çizgileri ve yön etiketleri
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: CompassPainter(),
-                    ),
-                  ),
-
-                  // Yön oku
-                  Transform.rotate(
-                    angle: (direction * math.pi / 180) - (math.pi / 2),
-                    child: Container(
-                      width: size * 0.8,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.transparent,
-                            AppColors.directionGauge.withOpacity(0.5),
-                            AppColors.directionGauge,
-                          ],
-                          stops: const [0.0, 0.5, 1.0],
-                        ),
-                      ),
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          width: 10,
-                          height: 10,
-                          decoration: const BoxDecoration(
-                            color: AppColors.directionGauge,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Orta nokta
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: AppColors.directionGauge,
-                      shape: BoxShape.circle,
+                  const SizedBox(width: 8),
+                  Text(
+                    _getDirectionText(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 8),
+            // Pusula göstergesi
+            Expanded(
+              child: Center(
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Dış çember
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.grey.withOpacity(0.3),
+                          width: 2,
+                        ),
+                      ),
+                    ),
 
-            // Değer gösterimi
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${direction.toStringAsFixed(0)}°',
-                  style: TextStyles.gaugeValue.copyWith(
-                    color: isWarning ? AppColors.error : AppColors.textPrimary,
-                  ),
+                    // Yön işaretleri
+                    SizedBox(
+                      width: 120,
+                      height: 120,
+                      child: CustomPaint(
+                        painter: CompassPainter(),
+                      ),
+                    ),
+
+                    // Ok
+                    Transform.rotate(
+                      angle: direction * math.pi / 180,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        child: CustomPaint(
+                          painter: ArrowPainter(color: _getAlertColor()),
+                        ),
+                      ),
+                    ),
+
+                    // Merkez nokta
+                    Container(
+                      width: 12,
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: _getAlertColor(),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  _getCardinalDirection(direction),
-                  style: TextStyles.gaugeUnit,
-                ),
-              ],
+              ),
             ),
           ],
         ),
@@ -150,9 +129,35 @@ class DirectionIndicator extends StatelessWidget {
     );
   }
 
-  String _getCardinalDirection(double degree) {
-    const List<String> cardinals = ['K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB'];
-    return cardinals[((degree + 22.5) % 360 ~/ 45)];
+  Color _getAlertColor() {
+    switch (alertLevel) {
+      case AlertLevel.warning:
+        return AppColors.warning;
+      case AlertLevel.critical:
+        return AppColors.error;
+      default:
+        return AppColors.primary;
+    }
+  }
+
+  String _getDirectionText() {
+    if (direction >= 337.5 || direction < 22.5) {
+      return 'K';
+    } else if (direction >= 22.5 && direction < 67.5) {
+      return 'KD';
+    } else if (direction >= 67.5 && direction < 112.5) {
+      return 'D';
+    } else if (direction >= 112.5 && direction < 157.5) {
+      return 'GD';
+    } else if (direction >= 157.5 && direction < 202.5) {
+      return 'G';
+    } else if (direction >= 202.5 && direction < 247.5) {
+      return 'GB';
+    } else if (direction >= 247.5 && direction < 292.5) {
+      return 'B';
+    } else {
+      return 'KB';
+    }
   }
 }
 
@@ -161,57 +166,97 @@ class CompassPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2;
-
     final paint = Paint()
-      ..color = AppColors.directionGauge.withOpacity(0.6)
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
+      ..color = Colors.grey.withOpacity(0.7)
+      ..style = PaintingStyle.fill;
 
-    final textPainter = TextPainter(
-      textDirection: TextDirection.ltr,
-      textAlign: TextAlign.center,
+    // Kuzey
+    _drawDirectionMark(canvas, center, radius, 0, 'K', paint);
+    // Doğu
+    _drawDirectionMark(canvas, center, radius, 90, 'D', paint);
+    // Güney
+    _drawDirectionMark(canvas, center, radius, 180, 'G', paint);
+    // Batı
+    _drawDirectionMark(canvas, center, radius, 270, 'B', paint);
+  }
+
+  void _drawDirectionMark(Canvas canvas, Offset center, double radius, double angle, String text, Paint paint) {
+    final radian = angle * math.pi / 180;
+    final dx = math.cos(radian);
+    final dy = math.sin(radian);
+
+    final outerPoint = Offset(
+      center.dx + dx * radius,
+      center.dy + dy * radius,
     );
 
-    // Ana yönler
-    const List<String> mainDirections = ['K', 'D', 'G', 'B'];
+    final innerPoint = Offset(
+      center.dx + dx * (radius - 15),
+      center.dy + dy * (radius - 15),
+    );
 
-    for (int i = 0; i < 360; i += 30) {
-      final angle = i * math.pi / 180;
-      final isMajor = i % 90 == 0;
+    // Çizgi çiz
+    canvas.drawLine(innerPoint, outerPoint, paint);
 
-      final lineStart = Offset(
-        center.dx + (radius - (isMajor ? 20 : 10)) * math.cos(angle),
-        center.dy + (radius - (isMajor ? 20 : 10)) * math.sin(angle),
-      );
+    // Metni çiz
+    final textSpan = TextSpan(
+      text: text,
+      style: const TextStyle(
+        color: Colors.grey,
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    );
 
-      final lineEnd = Offset(
-        center.dx + radius * math.cos(angle),
-        center.dy + radius * math.sin(angle),
-      );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
 
-      canvas.drawLine(lineStart, lineEnd, paint);
+    textPainter.layout();
 
-      if (isMajor) {
-        final dirIndex = i ~/ 90;
-        textPainter.text = TextSpan(
-          text: mainDirections[dirIndex],
-          style: TextStyle(
-            color: AppColors.directionGauge.withOpacity(0.8),
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        );
+    final textOffset = Offset(
+      center.dx + dx * (radius - 25) - textPainter.width / 2,
+      center.dy + dy * (radius - 25) - textPainter.height / 2,
+    );
 
-        textPainter.layout();
+    textPainter.paint(canvas, textOffset);
+  }
 
-        final textOffset = Offset(
-          center.dx + (radius - 35) * math.cos(angle) - textPainter.width / 2,
-          center.dy + (radius - 35) * math.sin(angle) - textPainter.height / 2,
-        );
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
-        textPainter.paint(canvas, textOffset);
-      }
-    }
+class ArrowPainter extends CustomPainter {
+  final Color color;
+
+  ArrowPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color.withOpacity(0.8)
+      ..style = PaintingStyle.fill;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final path = Path();
+
+    // Ok başı (kuzey yönü)
+    path.moveTo(center.dx, center.dy - size.height / 2 + 5); // Üst nokta
+    path.lineTo(center.dx - 8, center.dy - 5); // Sol alt
+    path.lineTo(center.dx + 8, center.dy - 5); // Sağ alt
+    path.close();
+
+    canvas.drawPath(path, paint);
+
+    // Ok kuyruğu (güney yönü)
+    final tailPath = Path();
+    tailPath.moveTo(center.dx, center.dy + size.height / 2 - 5); // Alt nokta
+    tailPath.lineTo(center.dx - 5, center.dy + 5); // Sol üst
+    tailPath.lineTo(center.dx + 5, center.dy + 5); // Sağ üst
+    tailPath.close();
+
+    canvas.drawPath(tailPath, paint..color = color.withOpacity(0.4));
   }
 
   @override
