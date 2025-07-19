@@ -6,8 +6,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/domain/entities/user.dart';
-import 'package:kapadokya_balon_app/domain/usecases/login_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/reset_password_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/login_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.dart';
 
 // Auth State
 class AuthState {

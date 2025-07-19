@@ -1,52 +1,57 @@
 // sensor_data.dart
 //
-// Sensör verilerini tanımlayan domain katmanı sınıfı.
-// Balon uçuşu sırasında toplanan sensör verilerini içerir.
+// Balon sensörlerinden gelen verileri temsil eden entity.
 
 import 'package:equatable/equatable.dart';
 
+enum SensorType {
+  altitude,
+  temperature,
+  pressure,
+  direction,
+  speed,
+  fuelLevel,
+  verticalSpeed,
+  gpsPosition
+}
+
+enum AlertLevel {
+  none,
+  info,
+  warning,
+  critical
+}
+
 class SensorData extends Equatable {
-  final String id;
-  final String flightId;
+  final SensorType type;
+  final double value;
+  final String unit;
+  final AlertLevel alertLevel;
   final DateTime timestamp;
-  final double altitude;      // metre
-  final double speed;         // km/h
-  final double temperature;   // Celsius
-  final double humidity;      // Yüzde
-  final double direction;     // Derece (0-360)
-  final double latitude;      // GPS koordinatı
-  final double longitude;     // GPS koordinatı
-  final double acceleration;  // m/s²
-  final bool isWarning;       // Herhangi bir değer uyarı eşiğinde mi?
-  final List<String> warnings; // Uyarı mesajları
+  final double minValue;
+  final double maxValue;
+  final double? secondaryValue; // Örneğin, GPS için enlem/boylam ikinci değer olabilir
 
   const SensorData({
-    required this.id,
-    required this.flightId,
+    required this.type,
+    required this.value,
+    required this.unit,
+    this.alertLevel = AlertLevel.none,
     required this.timestamp,
-    required this.altitude,
-    required this.speed,
-    required this.temperature,
-    required this.humidity,
-    required this.direction,
-    required this.latitude,
-    required this.longitude,
-    required this.acceleration,
-    this.isWarning = false,
-    this.warnings = const [],
+    required this.minValue,
+    required this.maxValue,
+    this.secondaryValue,
   });
+
+  bool get isInAlertState => alertLevel != AlertLevel.none;
+
+  bool get isInWarningState =>
+      alertLevel == AlertLevel.warning || alertLevel == AlertLevel.critical;
+
+  bool get isInCriticalState => alertLevel == AlertLevel.critical;
 
   @override
   List<Object?> get props => [
-    id, flightId, timestamp, altitude, speed, temperature,
-    humidity, direction, latitude, longitude, acceleration,
-    isWarning, warnings
+    type, value, unit, alertLevel, timestamp, minValue, maxValue, secondaryValue
   ];
-
-  String get coordinates => '${latitude.toStringAsFixed(6)}, ${longitude.toStringAsFixed(6)}';
-
-  String get directionAsCardinal {
-    const List<String> cardinals = ['K', 'KD', 'D', 'GD', 'G', 'GB', 'B', 'KB'];
-    return cardinals[(((direction + 22.5) % 360) / 45).floor()];
-  }
 }

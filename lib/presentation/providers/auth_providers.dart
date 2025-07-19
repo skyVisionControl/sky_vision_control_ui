@@ -8,8 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/data/datasources/auth_data_source.dart';
 import 'package:kapadokya_balon_app/data/repositories/auth_repository_impl.dart';
 import 'package:kapadokya_balon_app/domain/repositories/auth_repository.dart';
-import 'package:kapadokya_balon_app/domain/usecases/login_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/reset_password_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/login_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.dart';
 import 'package:kapadokya_balon_app/presentation/viewmodels/auth_view_model.dart';
 
 // Data Source Provider

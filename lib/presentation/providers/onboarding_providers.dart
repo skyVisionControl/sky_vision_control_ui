@@ -6,12 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/data/datasources/onboarding_data_source.dart';
 import 'package:kapadokya_balon_app/data/repositories/onboarding_repository_impl.dart';
 import 'package:kapadokya_balon_app/domain/repositories/onboarding_repository.dart';
-import 'package:kapadokya_balon_app/domain/usecases/complete_alcohol_test_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/complete_checklist_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/complete_face_recognition_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/get_checklist_items_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/get_onboarding_status_usecase.dart';
-import 'package:kapadokya_balon_app/domain/usecases/update_checklist_item_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_alcohol_test_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_checklist_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_face_recognition_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/get_checklist_items_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/get_onboarding_status_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/onboarding/update_checklist_item_usecase.dart';
 import 'package:kapadokya_balon_app/presentation/viewmodels/onboarding_view_model.dart';
 
 // Data Source Provider

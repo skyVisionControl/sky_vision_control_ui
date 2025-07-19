@@ -51,7 +51,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SensorDashboardPage(),
       ),
       GoRoute(
-        path: RouteConstants.alert,
+        path: RouteConstants.alerts,
         builder: (context, state) => const AlertPage(),
       ),
       GoRoute(
