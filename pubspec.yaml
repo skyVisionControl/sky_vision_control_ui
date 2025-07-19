@@ -1,0 +1,75 @@
+name: kapadokya_balon_app
+description: Kapadokya balon kaptanları için bir Flutter tablet uygulaması.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # UI Bileşenleri
+  cupertino_icons: ^1.0.5
+  flutter_svg: ^2.0.7
+  cached_network_image: ^3.2.3
+  shimmer: ^3.0.0
+  lottie: ^2.6.0
+
+  # State Yönetimi
+  flutter_riverpod: ^2.3.6
+  riverpod_annotation: ^2.1.1
+
+  # Navigasyon
+  go_router: ^10.1.0
+
+  # Network ve Veri
+  dio: ^5.3.2
+  shared_preferences: ^2.2.0
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  # Yardımcı Paketler
+  intl: ^0.18.1
+  logger: ^1.4.0
+  internet_connection_checker: ^1.0.0+1
+
+  # Sensör Göstergeleri (Balon uygulaması için)
+  syncfusion_flutter_gauges: ^22.2.9
+  syncfusion_flutter_charts: ^22.2.9
+  equatable: ^2.0.7
+  dartz: ^0.10.1
+
+  # Firebase (İleride kullanılacak)
+  # firebase_core: ^2.15.0
+  # firebase_auth: ^4.7.2
+  # cloud_firestore: ^4.8.4
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.2
+  mockito: ^5.4.2
+  build_runner: ^2.4.6
+  riverpod_generator: ^2.2.3
+  hive_generator: ^2.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/lottie/
+
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Regular.ttf
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
