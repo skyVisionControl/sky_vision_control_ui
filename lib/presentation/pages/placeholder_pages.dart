@@ -89,7 +89,7 @@ class SensorDashboardPage extends StatelessWidget {
   }
 }
 
- */
+
 
 class AlertPage extends StatelessWidget {
   const AlertPage({Key? key}) : super(key: key);
@@ -122,4 +122,8 @@ class EndFlightPage extends StatelessWidget {
       body: Center(child: Text('Uçuş Sonlandırma Sayfası')),
     );
   }
+
+
 }
+
+ */

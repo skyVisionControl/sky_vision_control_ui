@@ -5,12 +5,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/core/constants/route_constants.dart';
 import 'package:kapadokya_balon_app/presentation/pages/auth/forgot_password_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/auth/login_page.dart';
+import 'package:kapadokya_balon_app/presentation/pages/flight/flight_summary_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/approval_waiting_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/checklist_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/face_recognition_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/alcohol_test_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/placeholder_pages.dart';
 
+import '../pages/flight/alerts_page.dart';
+import '../pages/flight/report_issue_page.dart';
 import '../pages/flight/sensor_dashboard_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -54,15 +57,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: RouteConstants.alerts,
-        builder: (context, state) => const AlertPage(),
+        builder: (context, state) => const AlertsPage(),
       ),
       GoRoute(
         path: RouteConstants.reportIssue,
         builder: (context, state) => const ReportIssuePage(),
       ),
       GoRoute(
-        path: RouteConstants.endFlight,
-        builder: (context, state) => const EndFlightPage(),
+        path: RouteConstants.flightSummary,
+        builder: (context, state) => const FlightSummaryPage(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
