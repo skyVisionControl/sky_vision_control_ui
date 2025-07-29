@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447462828242",
+    "project_id": "sky-vision-control-5ca1b",
+    "storage_bucket": "sky-vision-control-5ca1b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447462828242:android:a576c34d7c725b08c8e50b",
+        "android_client_info": {
+          "package_name": "com.example.kapadokya_balon_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGsLqWgPUG28-ccun0R4sfkGlbXKZ4POs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,11 +2,14 @@
 // Uygulama yapılandırmasını, tema ayarlarını ve ana provider'ları başlatır.
 
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/core/themes/app_theme.dart';
 import 'package:kapadokya_balon_app/presentation/routes/app_router.dart';
+
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +22,9 @@ void main() async {
 
   // Uygulama başlangıç yapılandırmaları burada yapılabilir
   // Örneğin: Hive, SharedPreferences, Firebase başlatma
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(
     const ProviderScope(

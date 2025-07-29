@@ -16,6 +16,9 @@ class RouteConstants {
   static const String checklist = '/onboarding/checklist';
   static const String approvalWaiting = '/onboarding/approval-waiting';
 
+  // Ana sayfa
+  static const String home = '/home';
+
   // Flight routes
   static const String sensorDashboard = '/flight/sensor-dashboard';
   static const String alerts = '/flight/alerts';

@@ -1,26 +1,15 @@
-// auth_repository.dart
-//
-// Kimlik doğrulama işlemleri için repository arayüzü.
-// Domain katmanında tanımlanan bu arayüz, veri kaynağından bağımsızdır.
-
-
-import 'package:kapadokya_balon_app/domain/entities/user.dart';
-import 'package:kapadokya_balon_app/core/error/failures.dart';
 import 'package:dartz/dartz.dart';
+import 'package:kapadokya_balon_app/core/error/failures.dart';
+import 'package:kapadokya_balon_app/domain/entities/user.dart';
 
 abstract class AuthRepository {
-  /// Kullanıcı girişi yapar
-  Future<Either<Failure, User>> login(String email, String password);
+  User? getCurrentUser();
 
-  /// Şifre sıfırlama e-postası gönderir
+  Stream<User?> get userChanges;
+
+  Future<Either<Failure, User>> signIn(String email, String password);
+
   Future<Either<Failure, void>> resetPassword(String email);
 
-  /// Oturum açmış kullanıcıyı getirir (yoksa null)
-  Future<Either<Failure, User?>> getCurrentUser();
-
-  /// Oturumu kapatır
-  Future<Either<Failure, void>> logout();
-
-  /// Kullanıcının kimlik doğrulama durumunu kontrol eder
-  Future<Either<Failure, bool>> isAuthenticated();
+  Future<void> signOut();
 }

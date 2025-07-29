@@ -1,42 +1,54 @@
-// auth_providers.dart
-//
-// Kimlik doğrulama ile ilgili provider tanımlamaları.
-// Dependency injection için Riverpod kullanılır.
-
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kapadokya_balon_app/data/datasources/auth_data_source.dart';
+import 'package:kapadokya_balon_app/data/datasources/auth/auth_data_source.dart';
+import 'package:kapadokya_balon_app/data/datasources/auth/firebase_auth_service.dart';
 import 'package:kapadokya_balon_app/data/repositories/auth_repository_impl.dart';
 import 'package:kapadokya_balon_app/domain/repositories/auth_repository.dart';
-import 'package:kapadokya_balon_app/domain/usecases/auth/login_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/get_current_user_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/observe_user_changes_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/sign_in_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/sign_out_usecase.dart';
 import 'package:kapadokya_balon_app/presentation/viewmodels/auth_view_model.dart';
 
-// Data Source Provider
+// Service Provider
 final authDataSourceProvider = Provider<AuthDataSource>((ref) {
-  return MockAuthDataSource();
+  return FirebaseAuthService();
 });
 
 // Repository Provider
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
-  final dataSource = ref.watch(authDataSourceProvider);
-  return AuthRepositoryImpl(dataSource);
+  final authDataSource = ref.watch(authDataSourceProvider);
+  return AuthRepositoryImpl(authDataSource);
 });
 
 // Use Case Providers
-final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return LoginUseCase(repository);
+final getCurrentUserUseCaseProvider = Provider<GetCurrentUserUseCase>((ref) {
+  return GetCurrentUserUseCase(ref.watch(authRepositoryProvider));
+});
+
+final observeUserChangesUseCaseProvider = Provider<ObserveUserChangesUseCase>((ref) {
+  return ObserveUserChangesUseCase(ref.watch(authRepositoryProvider));
+});
+
+final signInUseCaseProvider = Provider<SignInUseCase>((ref) {
+  return SignInUseCase(ref.watch(authRepositoryProvider));
 });
 
 final resetPasswordUseCaseProvider = Provider<ResetPasswordUseCase>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return ResetPasswordUseCase(repository);
+  return ResetPasswordUseCase(ref.watch(authRepositoryProvider));
+});
+
+final signOutUseCaseProvider = Provider<SignOutUseCase>((ref) {
+  return SignOutUseCase(ref.watch(authRepositoryProvider));
 });
 
 // ViewModel Provider
 final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((ref) {
-  final loginUseCase = ref.watch(loginUseCaseProvider);
-  final resetPasswordUseCase = ref.watch(resetPasswordUseCaseProvider);
-  return AuthViewModel(loginUseCase, resetPasswordUseCase);
+  return AuthViewModel(
+    ref.watch(getCurrentUserUseCaseProvider),
+    ref.watch(observeUserChangesUseCaseProvider),
+    ref.watch(signInUseCaseProvider),
+    ref.watch(resetPasswordUseCaseProvider),
+    ref.watch(signOutUseCaseProvider),
+  );
 });

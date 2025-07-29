@@ -1,49 +1,37 @@
 // user_model.dart
 //
-// User entity'sinin veri katmanı modellemesi.
-// API'den gelen verileri domain katmanı entity'sine dönüştürür.
-
+// Kullanıcı bilgilerini tutan model sınıfı.
 
 import 'package:kapadokya_balon_app/domain/entities/user.dart';
 
 class UserModel extends User {
   const UserModel({
     required String id,
-    required String name,
     required String email,
-    required String role,
-    DateTime? lastLogin,
-    bool isActive = true,
+    required String name,
+    String? photoUrl,
   }) : super(
     id: id,
-    name: name,
     email: email,
-    role: role,
-    lastLogin: lastLogin,
-    isActive: isActive,
+    name: name,
+    photoUrl: photoUrl,
   );
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
-      name: json['name'] as String,
       email: json['email'] as String,
-      role: json['role'] as String,
-      lastLogin: json['lastLogin'] != null
-          ? DateTime.parse(json['lastLogin'] as String)
-          : null,
-      isActive: json['isActive'] as bool? ?? true,
+      name: json['name'] as String,
+      photoUrl: json['photoUrl'] as String?,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
       'email': email,
-      'role': role,
-      'lastLogin': lastLogin?.toIso8601String(),
-      'isActive': isActive,
+      'name': name,
+      'photoUrl': photoUrl,
     };
   }
 }

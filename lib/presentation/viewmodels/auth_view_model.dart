@@ -1,105 +1,167 @@
-// auth_view_model.dart
-//
-// Kimlik doğrulama ekranları için view model sınıfı.
-// Riverpod ile state yönetimini sağlar.
-
+import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/domain/entities/user.dart';
-import 'package:kapadokya_balon_app/domain/usecases/auth/login_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/get_current_user_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/observe_user_changes_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/sign_in_usecase.dart';
+import 'package:kapadokya_balon_app/domain/usecases/auth/sign_out_usecase.dart';
 
-// Auth State
 class AuthState {
+  final User? user;
   final bool isLoading;
   final String? errorMessage;
-  final User? user;
-  final bool isResetEmailSent;
+  final bool isAuthenticated;
+  final bool isPasswordResetSent;
 
   AuthState({
+    this.user,
     this.isLoading = false,
     this.errorMessage,
-    this.user,
-    this.isResetEmailSent = false,
+    this.isAuthenticated = false,
+    this.isPasswordResetSent = false,
   });
 
-  bool get isAuthenticated => user != null;
-
   AuthState copyWith({
+    User? user,
     bool? isLoading,
     String? errorMessage,
-    User? user,
-    bool? isResetEmailSent,
+    bool? isAuthenticated,
+    bool? isPasswordResetSent,
   }) {
     return AuthState(
+      user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       errorMessage: errorMessage,
-      user: user ?? this.user,
-      isResetEmailSent: isResetEmailSent ?? this.isResetEmailSent,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isPasswordResetSent: isPasswordResetSent ?? this.isPasswordResetSent,
     );
   }
 }
 
-// Auth ViewModel
 class AuthViewModel extends StateNotifier<AuthState> {
-  final LoginUseCase _loginUseCase;
+  final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final ObserveUserChangesUseCase _observeUserChangesUseCase;
+  final SignInUseCase _signInUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
+  final SignOutUseCase _signOutUseCase;
 
-  AuthViewModel(this._loginUseCase, this._resetPasswordUseCase)
-      : super(AuthState());
+  StreamSubscription<User?>? _userSubscription;
 
-  Future<void> login(String email, String password) async {
-    if (email.isEmpty || password.isEmpty) {
+  AuthViewModel(
+    this._getCurrentUserUseCase,
+    this._observeUserChangesUseCase,
+    this._signInUseCase,
+    this._resetPasswordUseCase,
+    this._signOutUseCase,
+  ) : super(AuthState()) {
+    _init();
+  }
+
+  void _init() {
+    // Mevcut kullanıcıyı kontrol et
+    final currentUser = _getCurrentUserUseCase();
+    if (currentUser != null) {
       state = state.copyWith(
-        errorMessage: 'E-posta ve şifre alanları boş olamaz',
+        user: currentUser,
+        isAuthenticated: true,
       );
-      return;
     }
 
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    // Kullanıcı değişikliklerini dinle
+    _userSubscription = _observeUserChangesUseCase().listen((user) {
+      state = state.copyWith(
+        user: user,
+        isAuthenticated: user != null,
+      );
+    });
+  }
 
-    final params = LoginParams(email: email, password: password);
-    final result = await _loginUseCase(params);
+  @override
+  void dispose() {
+    _userSubscription?.cancel();
+    super.dispose();
+  }
+
+  // Giriş yapma
+  Future<void> signIn(String email, String password) async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+    );
+
+    final result = await _signInUseCase(email, password);
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         isLoading: false,
         errorMessage: failure.message,
+        isAuthenticated: false,
       ),
-          (user) => state = state.copyWith(
+      (user) => state = state.copyWith(
         isLoading: false,
         user: user,
+        isAuthenticated: true,
         errorMessage: null,
       ),
     );
   }
 
+  // Şifre sıfırlama
   Future<void> resetPassword(String email) async {
-    if (email.isEmpty) {
-      state = state.copyWith(
-        errorMessage: 'E-posta alanı boş olamaz',
-      );
-      return;
-    }
-
-    state = state.copyWith(isLoading: true, errorMessage: null);
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      isPasswordResetSent: false,
+    );
 
     final result = await _resetPasswordUseCase(email);
 
     result.fold(
-          (failure) => state = state.copyWith(
+      (failure) => state = state.copyWith(
         isLoading: false,
         errorMessage: failure.message,
+        isPasswordResetSent: false,
       ),
-          (_) => state = state.copyWith(
+      (_) => state = state.copyWith(
         isLoading: false,
-        isResetEmailSent: true,
         errorMessage: null,
+        isPasswordResetSent: true,
       ),
     );
   }
 
-  void resetState() {
-    state = AuthState();
+  // Çıkış yapma
+  Future<void> signOut() async {
+    state = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+    );
+
+    try {
+      await _signOutUseCase();
+      state = state.copyWith(
+        isLoading: false,
+        user: null,
+        isAuthenticated: false,
+        errorMessage: null,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Çıkış yapılırken bir hata oluştu: $e',
+      );
+    }
+  }
+
+  // Hata mesajını temizleme
+  void clearError() {
+    state = state.copyWith(errorMessage: null);
+  }
+
+  // Şifre sıfırlama durumunu sıfırlama
+  void resetPasswordResetState() {
+    state = state.copyWith(isPasswordResetSent: false);
   }
 }
