@@ -39,7 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final authState = ref.read(authViewModelProvider);
       if (authState.isAuthenticated) {
         if (!mounted) return;
-        context.go(RouteConstants.home);
+        context.go(RouteConstants.faceRecognition);
       }
     }
   }
