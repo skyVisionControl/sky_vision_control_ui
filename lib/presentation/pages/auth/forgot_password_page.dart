@@ -6,6 +6,8 @@ import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 import 'package:kapadokya_balon_app/core/utils/validators.dart';
 import 'package:kapadokya_balon_app/presentation/providers/auth_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
+import 'package:kapadokya_balon_app/presentation/widgets/dialogs/app_dialogs.dart';
+import 'package:kapadokya_balon_app/presentation/widgets/inputs/app_text_field.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({Key? key}) : super(key: key);
@@ -26,14 +28,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   void _resetPassword() async {
     if (_formKey.currentState!.validate()) {
-      // Firebase ile şifre sıfırlama
       await ref.read(authViewModelProvider.notifier).resetPassword(
         _emailController.text.trim(),
       );
-
-      // Şifre sıfırlama durumunu kontrol et
       final authState = ref.read(authViewModelProvider);
-
       if (authState.isPasswordResetSent) {
         if (!mounted) return;
         _showSuccessDialog();
@@ -42,26 +40,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   }
 
   void _showSuccessDialog() {
-    showDialog(
+    AppDialogs.showSuccessDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Text('Şifre Sıfırlama Gönderildi'),
-        content: const Text(
-          'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi. '
-              'Lütfen e-postanızı kontrol edin ve bağlantıya tıklayarak şifrenizi sıfırlayın.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ref.read(authViewModelProvider.notifier).resetPasswordResetState();
-              context.pop();
-            },
-            child: const Text('Tamam'),
-          ),
-        ],
-      ),
+      title: 'İşlem Tamamlandı',
+      message: 'Eğer bu e-posta adresine ait bir hesap varsa, şifre sıfırlama bağlantısı gönderilmiştir. '
+          'Lütfen e-posta kutunuzu (ve spam klasörünü) kontrol ediniz.',
+      onConfirm: () {
+        ref.read(authViewModelProvider.notifier).resetPasswordResetState();
+        context.pop();
+      },
     );
   }
 
@@ -69,30 +56,38 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
     final isLoading = authState.isLoading;
-    final errorMessage = authState.errorMessage;
+    final errorMessage = authState.resetPasswordErrorMessage;
+    final isPasswordResetSent = authState.isPasswordResetSent;
 
-    // Hata mesajı gösterme
     if (errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(authViewModelProvider.notifier).clearResetPasswordError();
         if (mounted) {
-          _showErrorDialog(errorMessage);
-          ref.read(authViewModelProvider.notifier).clearError();
+          AppDialogs.showErrorDialog(
+            context: context,
+            title: 'Hata',
+            message: errorMessage,
+          );
+        }
+      });
+    }
+
+    if (isPasswordResetSent) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showSuccessDialog();
         }
       });
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Şifremi Unuttum'),
-        centerTitle: true,
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withValues(alpha: 0.1),
+              AppColors.primary.withOpacity(0.1),
               Colors.white,
             ],
           ),
@@ -101,94 +96,72 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Başlık
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 24.0),
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.lock_reset,
-                            size: 72,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Şifrenizi mi Unuttunuz?',
-                            style: TextStyles.heading3,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'E-posta adresinizi girin, size şifre sıfırlama bağlantısı göndereceğiz.',
-                            style: TextStyles.bodyMedium.copyWith(
-                              color: AppColors.textSecondary,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400), // Form genişliğini sınırlandır
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24.0),
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.lock_reset,
+                              size: 72,
+                              color: AppColors.primary,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'Şifrenizi mi Unuttunuz?',
+                              style: TextStyles.heading3,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'E-posta adresinizi girin, size şifre sıfırlama bağlantısı göndereceğiz.',
+                              style: TextStyles.bodyMedium.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-
-                    // E-posta Alanı
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'E-posta',
-                        hintText: 'pilot@example.com',
-                        prefixIcon: Icon(Icons.email),
+                      AppEmailField(
+                        controller: _emailController,
+                        validator: Validators.validateEmail,
+                        enabled: !isLoading,
+                        onSubmitted: (_) => _resetPassword(),
+                        textInputAction: TextInputAction.done,
+                        width: 300, // Daha dar giriş alanı
+                        isFullWidth: false,
                       ),
-                      validator: Validators.validateEmail,
-                      enabled: !isLoading,
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Sıfırlama Butonu
-                    AppButton(
-                      text: 'Şifre Sıfırlama Gönder',
-                      icon: Icons.send,
-                      isLoading: isLoading,
-                      onPressed: _resetPassword,
-                      isFullWidth: true,
-                    ),
-
-                    // Giriş Sayfasına Dön
-                    Padding(
-                      padding: const EdgeInsets.only(top: 24.0),
-                      child: TextButton(
-                        onPressed: isLoading ? null : () => context.pop(),
-                        child: const Text('Giriş Sayfasına Dön'),
+                      const SizedBox(height: 24),
+                      AppButton(
+                        text: 'Şifre Sıfırlama Gönder',
+                        icon: Icons.send,
+                        isLoading: isLoading,
+                        onPressed: _resetPassword,
+                        isFullWidth: false,
+                        width: 220, // Daha dar buton
                       ),
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(top: 24.0),
+                        child: TextButton(
+                          onPressed: isLoading ? null : () => context.pop(),
+                          child: const Text('Giriş Sayfasına Dön'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Hata'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
-          ),
-        ],
       ),
     );
   }

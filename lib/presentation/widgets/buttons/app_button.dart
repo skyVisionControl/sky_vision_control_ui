@@ -1,128 +1,186 @@
-// app_button.dart
-//
-// Uygulamada kullanılan özelleştirilmiş buton bileşeni.
-// Birincil, ikincil ve text buton türlerini destekler.
-
-
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
-import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 
-enum AppButtonType { primary, secondary, text }
+enum AppButtonType {
+  primary,
+  secondary,
+  outline,
+  text,
+}
+
+enum AppButtonSize {
+  small,
+  medium,
+  large,
+}
 
 class AppButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
-  final AppButtonType type;
+  final IconData? icon;
+  final VoidCallback? onPressed;
   final bool isLoading;
   final bool isFullWidth;
-  final IconData? icon;
-  final double height;
-  final EdgeInsets padding;
+  final AppButtonType type;
+  final AppButtonSize size;
+  final double? width; // Özel genişlik
 
   const AppButton({
     Key? key,
     required this.text,
-    required this.onPressed,
-    this.type = AppButtonType.primary,
+    this.icon,
+    this.onPressed,
     this.isLoading = false,
     this.isFullWidth = false,
-    this.icon,
-    this.height = 56.0,
-    this.padding = const EdgeInsets.symmetric(horizontal: 24.0),
+    this.type = AppButtonType.primary,
+    this.size = AppButtonSize.medium,
+    this.width,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    switch (type) {
-      case AppButtonType.primary:
-        return _buildPrimaryButton();
-      case AppButtonType.secondary:
-        return _buildSecondaryButton();
-      case AppButtonType.text:
-        return _buildTextButton();
-    }
-  }
+    // Butonun boyutlarını belirle
+    double buttonHeight;
+    double fontSize;
+    double iconSize;
+    double horizontalPadding;
+    EdgeInsets padding;
 
-  Widget _buildPrimaryButton() {
-    return SizedBox(
-      width: isFullWidth ? double.infinity : null,
-      height: height,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          padding: padding,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ),
-        child: _buildButtonContent(Colors.white),
-      ),
-    );
-  }
-
-  Widget _buildSecondaryButton() {
-    return SizedBox(
-      width: isFullWidth ? double.infinity : null,
-      height: height,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: AppColors.primary,
-          side: const BorderSide(color: AppColors.primary),
-          padding: padding,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-        ),
-        child: _buildButtonContent(AppColors.primary),
-      ),
-    );
-  }
-
-  Widget _buildTextButton() {
-    return TextButton(
-      onPressed: isLoading ? null : onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: AppColors.primary,
-        padding: padding,
-      ),
-      child: _buildButtonContent(AppColors.primary),
-    );
-  }
-
-  Widget _buildButtonContent(Color color) {
-    if (isLoading) {
-      return SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(
-          strokeWidth: 2.0,
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
-      );
+    switch (size) {
+      case AppButtonSize.small:
+        buttonHeight = 36.0;
+        fontSize = 12.0;
+        iconSize = 16.0;
+        horizontalPadding = 12.0;
+        padding = const EdgeInsets.symmetric(horizontal: 12.0);
+        break;
+      case AppButtonSize.large:
+        buttonHeight = 54.0;
+        fontSize = 16.0;
+        iconSize = 24.0;
+        horizontalPadding = 24.0;
+        padding = const EdgeInsets.symmetric(horizontal: 24.0);
+        break;
+      case AppButtonSize.medium:
+      default:
+        buttonHeight = 46.0;
+        fontSize = 14.0;
+        iconSize = 20.0;
+        horizontalPadding = 16.0;
+        padding = const EdgeInsets.symmetric(horizontal: 16.0);
     }
 
-    if (icon != null) {
-      return Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(width: 8),
+    // Buton içeriği
+    Widget buttonContent = isLoading
+        ? SizedBox(
+      width: iconSize,
+      height: iconSize,
+      child: CircularProgressIndicator(
+        strokeWidth: 2.0,
+        valueColor: AlwaysStoppedAnimation<Color>(
+          type == AppButtonType.primary
+              ? Colors.white
+              : AppColors.primary,
+        ),
+      ),
+    )
+        : Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (icon != null) ...[
+          Icon(
+            icon,
+            size: iconSize,
+          ),
+          SizedBox(width: text.isNotEmpty ? 8.0 : 0),
+        ],
+        if (text.isNotEmpty)
           Text(
             text,
-            style: TextStyles.buttonText.copyWith(color: color),
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.w500,
+            ),
           ),
-        ],
-      );
+      ],
+    );
+
+    // Buton stilini belirle
+    ButtonStyle buttonStyle;
+    switch (type) {
+      case AppButtonType.secondary:
+        buttonStyle = ElevatedButton.styleFrom(
+          backgroundColor: AppColors.secondary,
+          foregroundColor: Colors.white,
+          elevation: 1,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: padding,
+          minimumSize: Size(isFullWidth ? double.infinity : (width ?? 120.0), buttonHeight),
+          maximumSize: Size(isFullWidth ? double.infinity : (width ?? 250.0), buttonHeight),
+        );
+        break;
+      case AppButtonType.outline:
+        buttonStyle = OutlinedButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          side: const BorderSide(color: AppColors.primary),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: padding,
+          minimumSize: Size(isFullWidth ? double.infinity : (width ?? 120.0), buttonHeight),
+          maximumSize: Size(isFullWidth ? double.infinity : (width ?? 250.0), buttonHeight),
+        );
+        break;
+      case AppButtonType.text:
+        buttonStyle = TextButton.styleFrom(
+          foregroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: padding,
+          minimumSize: Size(isFullWidth ? double.infinity : (width ?? 120.0), buttonHeight),
+          maximumSize: Size(isFullWidth ? double.infinity : (width ?? 250.0), buttonHeight),
+        );
+        break;
+      case AppButtonType.primary:
+      default:
+        buttonStyle = ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          padding: padding,
+          minimumSize: Size(isFullWidth ? double.infinity : (width ?? 120.0), buttonHeight),
+          maximumSize: Size(isFullWidth ? double.infinity : (width ?? 250.0), buttonHeight),
+        );
     }
 
-    return Text(
-      text,
-      style: TextStyles.buttonText.copyWith(color: color),
-    );
+    // Buton türüne göre widget oluştur
+    switch (type) {
+      case AppButtonType.outline:
+        return OutlinedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: buttonStyle,
+          child: buttonContent,
+        );
+      case AppButtonType.text:
+        return TextButton(
+          onPressed: isLoading ? null : onPressed,
+          style: buttonStyle,
+          child: buttonContent,
+        );
+      case AppButtonType.secondary:
+      case AppButtonType.primary:
+      default:
+        return ElevatedButton(
+          onPressed: isLoading ? null : onPressed,
+          style: buttonStyle,
+          child: buttonContent,
+        );
+    }
   }
 }

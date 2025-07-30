@@ -7,6 +7,8 @@ import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 import 'package:kapadokya_balon_app/core/utils/validators.dart';
 import 'package:kapadokya_balon_app/presentation/providers/auth_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
+import 'package:kapadokya_balon_app/presentation/widgets/inputs/app_text_field.dart';
+import 'package:kapadokya_balon_app/presentation/widgets/dialogs/app_dialogs.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -20,7 +22,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _rememberMe = true;
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -29,26 +30,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     super.dispose();
   }
 
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
-  }
-
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      // Firebase ile giriş
       await ref.read(authViewModelProvider.notifier).signIn(
         _emailController.text.trim(),
         _passwordController.text,
       );
-
-      // Giriş durumunu kontrol et
       final authState = ref.read(authViewModelProvider);
-
       if (authState.isAuthenticated) {
         if (!mounted) return;
-        context.go(RouteConstants.faceRecognition);
+        context.go(RouteConstants.home);
       }
     }
   }
@@ -61,14 +52,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authViewModelProvider);
     final isLoading = authState.isLoading;
-    final errorMessage = authState.errorMessage;
+    final errorMessage = authState.loginErrorMessage;
 
-    // Hata mesajı gösterme
     if (errorMessage != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(authViewModelProvider.notifier).clearLoginError();
         if (mounted) {
-          _showErrorDialog(errorMessage);
-          ref.read(authViewModelProvider.notifier).clearError();
+          AppDialogs.showErrorDialog(
+            context: context,
+            title: 'Giriş Hatası',
+            message: errorMessage,
+          );
         }
       });
     }
@@ -80,7 +74,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.primary.withValues(alpha: 0.1),
+              AppColors.primary.withOpacity(0.1),
               Colors.white,
             ],
           ),
@@ -89,150 +83,109 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Logo
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 0),
-                      child: Column(
-                        children: [
-                          Image.asset(
-                            'assets/images/logo.png',
-                            height: 200,
-                          ),
-                          Text(
-                            'Sky Vision Control',
-                            style: TextStyles.heading2,
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
-                          /*
-                          Text(
-                            'Kaptan Giriş Paneli',
-                            style: TextStyles.heading4.copyWith(
-                              color: AppColors.textSecondary,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400), // Form genişliğini sınırlandır
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 32.0),
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              'assets/images/logo.png',
+                              height: 100,
                             ),
-                          ),
-
-                           */
-                          const SizedBox(height: 16),
-                        ],
+                            const SizedBox(height: 16),
+                            Text(
+                              'Sky Vision Control',
+                              style: TextStyles.heading2,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Kaptan Giriş Paneli',
+                              style: TextStyles.heading4.copyWith(
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-
-                    // E-posta Alanı
-                    TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'E-posta',
-                        hintText: 'captain@example.com',
-                        prefixIcon: Icon(Icons.email),
+                      AppEmailField(
+                        controller: _emailController,
+                        validator: Validators.validateEmail,
+                        enabled: !isLoading,
+                        width: 300, // Daha dar giriş alanı
+                        isFullWidth: false,
                       ),
-                      validator: Validators.validateEmail,
-                      enabled: !isLoading,
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Şifre Alanı
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
+                      const SizedBox(height: 16),
+                      AppPasswordField(
+                        controller: _passwordController,
                         labelText: 'Şifre',
                         hintText: '********',
-                        prefixIcon: const Icon(Icons.lock),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? Icons.visibility : Icons.visibility_off,
-                          ),
-                          onPressed: _togglePasswordVisibility,
+                        validator: Validators.validatePassword,
+                        enabled: !isLoading,
+                        onSubmitted: (_) => _login(),
+                        width: 300, // Daha dar giriş alanı
+                        isFullWidth: false,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _rememberMe,
+                                  onChanged: isLoading
+                                      ? null
+                                      : (value) {
+                                    setState(() {
+                                      _rememberMe = value ?? false;
+                                    });
+                                  },
+                                  activeColor: AppColors.primary,
+                                ),
+                                const Text('Beni Hatırla'),
+                              ],
+                            ),
+                            TextButton(
+                              onPressed: isLoading ? null : _forgotPassword,
+                              child: const Text('Şifremi Unuttum'),
+                            ),
+                          ],
                         ),
                       ),
-                      validator: Validators.validatePassword,
-                      enabled: !isLoading,
-                    ),
-
-                    // Beni Hatırla & Şifremi Unuttum
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Beni Hatırla
-                          Row(
-                            children: [
-                              Checkbox(
-                                value: _rememberMe,
-                                onChanged: isLoading
-                                    ? null
-                                    : (value) {
-                                  setState(() {
-                                    _rememberMe = value ?? false;
-                                  });
-                                },
-                                activeColor: AppColors.primary,
-                              ),
-                              const Text('Beni Hatırla'),
-                            ],
-                          ),
-
-                          // Şifremi Unuttum
-                          TextButton(
-                            onPressed: isLoading ? null : _forgotPassword,
-                            child: const Text('Şifremi Unuttum'),
-                          ),
-                        ],
+                      AppButton(
+                        text: 'Giriş Yap',
+                        icon: Icons.login,
+                        isLoading: isLoading,
+                        onPressed: _login,
+                        isFullWidth: false,
+                        width: 180, // Daha dar buton
                       ),
-                    ),
-
-                    // Giriş Butonu
-                    AppButton(
-                      text: 'Giriş Yap',
-                      icon: Icons.login,
-                      isLoading: isLoading,
-                      onPressed: _login,
-                      isFullWidth: true,
-                    ),
-
-                    // Demo Giriş Notu
-                    Padding(
-                      padding: const EdgeInsets.only(top: 32.0),
-                      child: Text(
-                        'Demo uygulama için:\nE-posta: demo@example.com\nŞifre: Demo123!',
-                        style: TextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
+                      Padding(
+                        padding: const EdgeInsets.only(top: 32.0),
+                        child: Text(
+                          'Demo uygulama için:\nE-posta: demo@example.com\nŞifre: Demo123!',
+                          style: TextStyles.bodySmall.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Giriş Hatası'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
-          ),
-        ],
       ),
     );
   }

@@ -78,25 +78,49 @@ class FirebaseAuthService implements AuthDataSource {
   }
 
   @override
+  Future<Either<Failure, bool>> checkEmailExists(String email) async {
+    try {
+      final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
+      return Right(methods.isNotEmpty);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-email') {
+        return Left(AuthenticationFailure(message: 'Geçersiz e-posta formatı.'));
+      }
+      return Left(AuthenticationFailure(message: 'E-posta kontrolü sırasında bir hata oluştu: ${e.message}'));
+    } catch (e) {
+      return Left(AuthenticationFailure(message: 'Beklenmeyen bir hata oluştu: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
     try {
       await _firebaseAuth.sendPasswordResetEmail(email: email);
       return const Right(null);
     } on FirebaseAuthException catch (e) {
-      String message;
-      switch (e.code) {
-        case 'user-not-found':
-          message = 'Bu e-posta adresi kayıtlı değil.';
-          break;
-        case 'invalid-email':
-          message = 'Geçersiz e-posta formatı.';
-          break;
-        default:
-          message = 'Şifre sıfırlama e-postası gönderilemedi: ${e.message}';
+      // Sadece gerçekten kritik hataları göster
+      if (e.code == 'invalid-email') {
+        return Left(AuthenticationFailure(message: 'Geçersiz e-posta formatı.'));
       }
-      return Left(AuthenticationFailure(message: message));
+
+      // "user-not-found" hatasını logla ama kullanıcıya gösterme
+      if (e.code == 'user-not-found') {
+        // Sadece loglama yapıyoruz, kullanıcıya göstermiyoruz
+        print('E-posta bulunamadı: $email');
+        // Güvenlik açısından başarılı dönelim
+        return const Right(null);
+      }
+
+      // Diğer Firebase hataları
+      print('Firebase Auth Hatası: ${e.code} - ${e.message}');
+      return Left(AuthenticationFailure(
+          message: 'İşlem sırasında bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
+      ));
     } catch (e) {
-      return Left(AuthenticationFailure(message: 'Beklenmeyen bir hata oluştu: $e'));
+      print('Beklenmeyen Hata: $e');
+      return Left(AuthenticationFailure(
+          message: 'Beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.'
+      ));
     }
   }
 

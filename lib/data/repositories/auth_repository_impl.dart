@@ -23,6 +23,11 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, bool>> checkEmailExists(String email) {
+    return _authDataSource.checkEmailExists(email);
+  }
+
+  @override
   Future<Either<Failure, void>> resetPassword(String email) {
     return _authDataSource.sendPasswordResetEmail(email);
   }

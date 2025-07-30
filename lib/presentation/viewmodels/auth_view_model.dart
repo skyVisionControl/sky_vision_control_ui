@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/domain/entities/user.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/get_current_user_usecase.dart';
@@ -8,17 +9,22 @@ import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.
 import 'package:kapadokya_balon_app/domain/usecases/auth/sign_in_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/sign_out_usecase.dart';
 
+import '../../core/error/failures.dart';
+import '../../domain/usecases/auth/check_email_exists_usecase.dart';
+
 class AuthState {
   final User? user;
   final bool isLoading;
-  final String? errorMessage;
+  final String? loginErrorMessage;  // Login sayfası için özel hata
+  final String? resetPasswordErrorMessage;  // Şifre sıfırlama sayfası için özel hata
   final bool isAuthenticated;
   final bool isPasswordResetSent;
 
   AuthState({
     this.user,
     this.isLoading = false,
-    this.errorMessage,
+    this.loginErrorMessage,
+    this.resetPasswordErrorMessage,
     this.isAuthenticated = false,
     this.isPasswordResetSent = false,
   });
@@ -26,19 +32,22 @@ class AuthState {
   AuthState copyWith({
     User? user,
     bool? isLoading,
-    String? errorMessage,
+    String? loginErrorMessage,
+    String? resetPasswordErrorMessage,
     bool? isAuthenticated,
     bool? isPasswordResetSent,
   }) {
     return AuthState(
       user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage: errorMessage,
+      loginErrorMessage: loginErrorMessage,  // null ise değiştirmez
+      resetPasswordErrorMessage: resetPasswordErrorMessage,  // null ise değiştirmez
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isPasswordResetSent: isPasswordResetSent ?? this.isPasswordResetSent,
     );
   }
 }
+
 
 class AuthViewModel extends StateNotifier<AuthState> {
   final GetCurrentUserUseCase _getCurrentUserUseCase;
@@ -46,16 +55,18 @@ class AuthViewModel extends StateNotifier<AuthState> {
   final SignInUseCase _signInUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
   final SignOutUseCase _signOutUseCase;
+  final CheckEmailExistsUseCase _checkEmailExistsUseCase;
 
   StreamSubscription<User?>? _userSubscription;
 
   AuthViewModel(
-    this._getCurrentUserUseCase,
-    this._observeUserChangesUseCase,
-    this._signInUseCase,
-    this._resetPasswordUseCase,
-    this._signOutUseCase,
-  ) : super(AuthState()) {
+      this._getCurrentUserUseCase,
+      this._observeUserChangesUseCase,
+      this._signInUseCase,
+      this._resetPasswordUseCase,
+      this._signOutUseCase,
+      this._checkEmailExistsUseCase,
+      ) : super(AuthState()) {
     _init();
   }
 
@@ -88,55 +99,73 @@ class AuthViewModel extends StateNotifier<AuthState> {
   Future<void> signIn(String email, String password) async {
     state = state.copyWith(
       isLoading: true,
-      errorMessage: null,
+      loginErrorMessage: null,  // Sadece login hatası temizlenir
     );
 
     final result = await _signInUseCase(email, password);
 
     result.fold(
-      (failure) => state = state.copyWith(
+          (failure) => state = state.copyWith(
         isLoading: false,
-        errorMessage: failure.message,
+        loginErrorMessage: failure.message,  // Login hatası set edilir
         isAuthenticated: false,
       ),
-      (user) => state = state.copyWith(
+          (user) => state = state.copyWith(
         isLoading: false,
         user: user,
         isAuthenticated: true,
-        errorMessage: null,
+        loginErrorMessage: null,
       ),
     );
   }
 
-  // Şifre sıfırlama
+  // Email kontrolü metodu
+  Future<Either<Failure, bool>> checkEmailExists(String email) {
+    return _checkEmailExistsUseCase(email);
+  }
+
+// Şifre sıfırlama
   Future<void> resetPassword(String email) async {
     state = state.copyWith(
       isLoading: true,
-      errorMessage: null,
+      resetPasswordErrorMessage: null,
       isPasswordResetSent: false,
     );
 
-    final result = await _resetPasswordUseCase(email);
+    try {
+      final result = await _resetPasswordUseCase(email);
 
-    result.fold(
-      (failure) => state = state.copyWith(
+      result.fold(
+            (failure) {
+          state = state.copyWith(
+            isLoading: false,
+            resetPasswordErrorMessage: failure.message,
+            isPasswordResetSent: false,
+          );
+        },
+            (_) {
+          // Başarılı işlem - her durumda başarılı göster (güvenlik nedeniyle)
+          state = state.copyWith(
+            isLoading: false,
+            resetPasswordErrorMessage: null,
+            isPasswordResetSent: true,
+          );
+        },
+      );
+    } catch (e) {
+      state = state.copyWith(
         isLoading: false,
-        errorMessage: failure.message,
+        resetPasswordErrorMessage: 'Şifre sıfırlama sırasında beklenmeyen bir hata oluştu. Lütfen daha sonra tekrar deneyin.',
         isPasswordResetSent: false,
-      ),
-      (_) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: null,
-        isPasswordResetSent: true,
-      ),
-    );
+      );
+    }
   }
 
   // Çıkış yapma
   Future<void> signOut() async {
     state = state.copyWith(
       isLoading: true,
-      errorMessage: null,
+      loginErrorMessage: null,
     );
 
     try {
@@ -145,19 +174,24 @@ class AuthViewModel extends StateNotifier<AuthState> {
         isLoading: false,
         user: null,
         isAuthenticated: false,
-        errorMessage: null,
+        loginErrorMessage: null,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Çıkış yapılırken bir hata oluştu: $e',
+        loginErrorMessage: 'Çıkış yapılırken bir hata oluştu: $e',
       );
     }
   }
 
-  // Hata mesajını temizleme
-  void clearError() {
-    state = state.copyWith(errorMessage: null);
+  // Hata mesajını temizleme (login)
+  void clearLoginError() {
+    state = state.copyWith(loginErrorMessage: null);
+  }
+
+  // Hata mesajını temizleme (şifre sıfırlama)
+  void clearResetPasswordError() {
+    state = state.copyWith(resetPasswordErrorMessage: null);
   }
 
   // Şifre sıfırlama durumunu sıfırlama

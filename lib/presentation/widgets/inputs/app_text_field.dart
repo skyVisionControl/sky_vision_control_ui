@@ -1,164 +1,222 @@
-// app_text_field.dart
-//
-// Uygulamada kullanılan özelleştirilmiş form alanı bileşeni.
-// Email, şifre ve normal metin girişi gibi farklı tipleri destekler.
-
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 
-enum AppTextFieldType { text, email, password, number }
-
-class AppTextField extends StatefulWidget {
-  final String label;
-  final String? hintText;
-  final String? errorText;
+class AppTextField extends StatelessWidget {
   final TextEditingController controller;
-  final AppTextFieldType type;
-  final bool isRequired;
-  final Widget? prefixIcon;
+  final String labelText;
+  final String? hintText;
+  final IconData? prefixIcon;
   final Widget? suffixIcon;
-  final int? maxLines;
-  final int? maxLength;
-  final Function(String)? onChanged;
-  final Function(String)? onSubmitted;
-  final TextInputAction textInputAction;
-  final bool autofocus;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
   final bool enabled;
+  final int? maxLength;
+  final int maxLines;
+  final bool autofocus;
+  final TextInputAction textInputAction;
+  final FocusNode? focusNode;
+  final VoidCallback? onEditingComplete;
+  final void Function(String)? onSubmitted;
+  final void Function(String)? onChanged;
+  final double? width; // Özel genişlik
+  final bool isFullWidth; // Tam genişlik kontrolü
 
   const AppTextField({
     Key? key,
-    required this.label,
-    this.hintText,
-    this.errorText,
     required this.controller,
-    this.type = AppTextFieldType.text,
-    this.isRequired = false,
+    required this.labelText,
+    this.hintText,
     this.prefixIcon,
     this.suffixIcon,
-    this.maxLines = 1,
-    this.maxLength,
-    this.onChanged,
-    this.onSubmitted,
-    this.textInputAction = TextInputAction.next,
-    this.autofocus = false,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
+    this.validator,
     this.enabled = true,
+    this.maxLength,
+    this.maxLines = 1,
+    this.autofocus = false,
+    this.textInputAction = TextInputAction.next,
+    this.focusNode,
+    this.onEditingComplete,
+    this.onSubmitted,
+    this.onChanged,
+    this.width,
+    this.isFullWidth = false,
   }) : super(key: key);
 
   @override
-  State<AppTextField> createState() => _AppTextFieldState();
+  Widget build(BuildContext context) {
+    return Container(
+      width: isFullWidth ? double.infinity : (width ?? 320),
+      constraints: BoxConstraints(
+        maxWidth: isFullWidth ? double.infinity : (width ?? 320),
+      ),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: labelText,
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: AppColors.textSecondary.withOpacity(0.5), // Hint text opacity
+            fontSize: 14,
+          ),
+          prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+          suffixIcon: suffixIcon,
+          counterText: maxLength != null ? '' : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: AppColors.primary.withOpacity(0.5)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: const BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: AppColors.primary, width: 2.0),
+          ),
+          errorBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: AppColors.error, width: 1.0),
+          ),
+          focusedErrorBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(8.0)),
+            borderSide: BorderSide(color: AppColors.error, width: 2.0),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          isDense: true, // Input alanını daha kompakt yap
+        ),
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        validator: validator,
+        enabled: enabled,
+        maxLength: maxLength,
+        maxLines: obscureText ? 1 : maxLines,
+        autofocus: autofocus,
+        textInputAction: textInputAction,
+        focusNode: focusNode,
+        onEditingComplete: onEditingComplete,
+        onFieldSubmitted: onSubmitted,
+        onChanged: onChanged,
+        style: const TextStyle(fontSize: 14.0),
+      ),
+    );
+  }
 }
 
-class _AppTextFieldState extends State<AppTextField> {
+class AppPasswordField extends StatefulWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final bool enabled;
+  final FocusNode? focusNode;
+  final TextInputAction textInputAction;
+  final VoidCallback? onEditingComplete;
+  final void Function(String)? onSubmitted;
+  final double? width; // Özel genişlik
+  final bool isFullWidth; // Tam genişlik kontrolü
+
+  const AppPasswordField({
+    Key? key,
+    required this.controller,
+    required this.labelText,
+    this.hintText,
+    this.validator,
+    this.enabled = true,
+    this.focusNode,
+    this.textInputAction = TextInputAction.done,
+    this.onEditingComplete,
+    this.onSubmitted,
+    this.width,
+    this.isFullWidth = false,
+  }) : super(key: key);
+
+  @override
+  State<AppPasswordField> createState() => _AppPasswordFieldState();
+}
+
+class _AppPasswordFieldState extends State<AppPasswordField> {
   bool _obscureText = true;
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Etiket
-        if (widget.label.isNotEmpty) ...[
-          Row(
-            children: [
-              Text(
-                widget.label,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              if (widget.isRequired) ...[
-                const SizedBox(width: 4),
-                const Text(
-                  '*',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.error,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-
-        // Text Field
-        TextFormField(
-          controller: widget.controller,
-          obscureText: widget.type == AppTextFieldType.password && _obscureText,
-          keyboardType: _getKeyboardType(),
-          maxLines: widget.type == AppTextFieldType.password ? 1 : widget.maxLines,
-          maxLength: widget.maxLength,
-          onChanged: widget.onChanged,
-          onFieldSubmitted: widget.onSubmitted,
-          textInputAction: widget.textInputAction,
-          autofocus: widget.autofocus,
-          enabled: widget.enabled,
-          decoration: InputDecoration(
-            hintText: widget.hintText,
-            errorText: widget.errorText,
-            prefixIcon: widget.prefixIcon,
-            suffixIcon: widget.type == AppTextFieldType.password
-                ? _buildPasswordToggle()
-                : widget.suffixIcon,
-            filled: true,
-            fillColor: widget.enabled ? Colors.white : AppColors.backgroundLight,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.error, width: 1),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: AppColors.error, width: 2),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 16,
-            ),
-          ),
+    return AppTextField(
+      controller: widget.controller,
+      labelText: widget.labelText,
+      hintText: widget.hintText,
+      prefixIcon: Icons.lock,
+      suffixIcon: IconButton(
+        icon: Icon(
+          _obscureText ? Icons.visibility_off : Icons.visibility,
+          color: AppColors.primary,
+          size: 20,
         ),
-      ],
-    );
-  }
-
-  Widget _buildPasswordToggle() {
-    return IconButton(
-      icon: Icon(
-        _obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-        color: AppColors.textSecondary,
+        onPressed: _togglePasswordVisibility,
       ),
-      onPressed: () {
-        setState(() {
-          _obscureText = !_obscureText;
-        });
-      },
+      obscureText: _obscureText,
+      validator: widget.validator,
+      enabled: widget.enabled,
+      focusNode: widget.focusNode,
+      textInputAction: widget.textInputAction,
+      onEditingComplete: widget.onEditingComplete,
+      onSubmitted: widget.onSubmitted,
+      width: widget.width,
+      isFullWidth: widget.isFullWidth,
     );
   }
+}
 
-  TextInputType _getKeyboardType() {
-    switch (widget.type) {
-      case AppTextFieldType.email:
-        return TextInputType.emailAddress;
-      case AppTextFieldType.password:
-        return TextInputType.visiblePassword;
-      case AppTextFieldType.number:
-        return TextInputType.number;
-      default:
-        return TextInputType.text;
-    }
+class AppEmailField extends StatelessWidget {
+  final TextEditingController controller;
+  final String labelText;
+  final String? hintText;
+  final String? Function(String?)? validator;
+  final bool enabled;
+  final FocusNode? focusNode;
+  final TextInputAction textInputAction;
+  final VoidCallback? onEditingComplete;
+  final void Function(String)? onSubmitted;
+  final double? width; // Özel genişlik
+  final bool isFullWidth; // Tam genişlik kontrolü
+
+  const AppEmailField({
+    Key? key,
+    required this.controller,
+    this.labelText = 'E-posta',
+    this.hintText = 'ornek@domain.com',
+    this.validator,
+    this.enabled = true,
+    this.focusNode,
+    this.textInputAction = TextInputAction.next,
+    this.onEditingComplete,
+    this.onSubmitted,
+    this.width,
+    this.isFullWidth = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppTextField(
+      controller: controller,
+      labelText: labelText,
+      hintText: hintText,
+      prefixIcon: Icons.email,
+      keyboardType: TextInputType.emailAddress,
+      validator: validator,
+      enabled: enabled,
+      focusNode: focusNode,
+      textInputAction: textInputAction,
+      onEditingComplete: onEditingComplete,
+      onSubmitted: onSubmitted,
+      width: width,
+      isFullWidth: isFullWidth,
+    );
   }
 }

@@ -10,6 +10,8 @@ import 'package:kapadokya_balon_app/domain/usecases/auth/sign_in_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/sign_out_usecase.dart';
 import 'package:kapadokya_balon_app/presentation/viewmodels/auth_view_model.dart';
 
+import '../../domain/usecases/auth/check_email_exists_usecase.dart';
+
 // Service Provider
 final authDataSourceProvider = Provider<AuthDataSource>((ref) {
   return FirebaseAuthService();
@@ -34,6 +36,10 @@ final signInUseCaseProvider = Provider<SignInUseCase>((ref) {
   return SignInUseCase(ref.watch(authRepositoryProvider));
 });
 
+final checkEmailExistsUseCaseProvider = Provider<CheckEmailExistsUseCase>((ref) {
+  return CheckEmailExistsUseCase(ref.watch(authRepositoryProvider));
+});
+
 final resetPasswordUseCaseProvider = Provider<ResetPasswordUseCase>((ref) {
   return ResetPasswordUseCase(ref.watch(authRepositoryProvider));
 });
@@ -50,5 +56,6 @@ final authViewModelProvider = StateNotifierProvider<AuthViewModel, AuthState>((r
     ref.watch(signInUseCaseProvider),
     ref.watch(resetPasswordUseCaseProvider),
     ref.watch(signOutUseCaseProvider),
+    ref.watch(checkEmailExistsUseCaseProvider),
   );
 });
