@@ -20,6 +20,7 @@ class OnboardingState {
   final bool isFaceRecognitionProcessing;
   final bool isAlcoholTestProcessing;
   final bool isChecklistSubmitting;
+  final bool isFaceRecognitionCompleted;
 
   OnboardingState({
     this.isLoading = false,
@@ -29,6 +30,7 @@ class OnboardingState {
     this.isFaceRecognitionProcessing = false,
     this.isAlcoholTestProcessing = false,
     this.isChecklistSubmitting = false,
+    this.isFaceRecognitionCompleted = false,
   });
 
   OnboardingState copyWith({
@@ -39,6 +41,7 @@ class OnboardingState {
     bool? isFaceRecognitionProcessing,
     bool? isAlcoholTestProcessing,
     bool? isChecklistSubmitting,
+    bool? isFaceRecognitionCompleted,
   }) {
     return OnboardingState(
       isLoading: isLoading ?? this.isLoading,
@@ -48,6 +51,7 @@ class OnboardingState {
       isFaceRecognitionProcessing: isFaceRecognitionProcessing ?? this.isFaceRecognitionProcessing,
       isAlcoholTestProcessing: isAlcoholTestProcessing ?? this.isAlcoholTestProcessing,
       isChecklistSubmitting: isChecklistSubmitting ?? this.isChecklistSubmitting,
+      isFaceRecognitionCompleted: isFaceRecognitionCompleted ?? this.isFaceRecognitionCompleted,
     );
   }
 }
@@ -84,6 +88,12 @@ class OnboardingViewModel extends StateNotifier<OnboardingState> {
         isLoading: false,
         status: status,
       ),
+    );
+  }
+
+  void setFaceRecognitionCompleted(bool isCompleted) {
+    state = state.copyWith(
+      isFaceRecognitionCompleted: isCompleted,
     );
   }
 
