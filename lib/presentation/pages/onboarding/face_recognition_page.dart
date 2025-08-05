@@ -23,6 +23,7 @@ import 'package:kapadokya_balon_app/presentation/providers/onboarding_providers.
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/dialogs/app_dialogs.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/face_painter.dart';
+import 'package:path_provider/path_provider.dart';
 
 final faceRecognitionServiceProvider = Provider<FaceRecognitionService>((ref) {
   final service = FaceRecognitionService();
@@ -58,20 +59,46 @@ class _FaceRecognitionPageState extends ConsumerState<FaceRecognitionPage> {
   Future<void> _initializeFaceRecognition() async {
     setState(() => isLoading = true);
 
-    final faceService = ref.read(faceRecognitionServiceProvider);
-    final hasSavedFace = await faceService.loadCaptainFace();
+    try {
+      final faceService = ref.read(faceRecognitionServiceProvider);
 
-    setState(() {
-      isCaptainRegistered = hasSavedFace;
-      isLoading = false;
-    });
+      // TFLite modelinin yüklendiğinden emin ol
+      await faceService.ensureModelLoaded();
 
-    // Kayıtlı yüz yoksa otomatik kamerayı aç
-    if (!hasSavedFace) {
-      // UI yüklendikten sonra çağır
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _captureImage();
+      // Kayıtlı yüzü kontrol et
+      final hasSavedFace = await faceService.loadCaptainFace();
+
+      debugPrint("👤 Has saved captain face: $hasSavedFace");
+
+      setState(() {
+        isCaptainRegistered = hasSavedFace;
+        isLoading = false;
       });
+
+      if (!hasSavedFace) {
+        debugPrint("📸 No saved face found. Will prompt for face registration.");
+        // UI yüklendikten sonra çağır
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _captureImage();
+        });
+      } else {
+        debugPrint("✅ Saved face found. Ready for verification.");
+      }
+    } catch (e) {
+      debugPrint("💥 Error initializing face recognition: $e");
+      setState(() {
+        isLoading = false;
+        isCaptainRegistered = false;
+      });
+
+      // Kullanıcıya hata göster
+      if (mounted) {
+        AppDialogs.showErrorDialog(
+          context: context,
+          title: 'Yüz Tanıma Hatası',
+          message: 'Yüz tanıma sistemi başlatılırken bir hata oluştu. Lütfen yüzünüzü yeniden kaydedin.',
+        );
+      }
     }
   }
 
@@ -262,6 +289,37 @@ class _FaceRecognitionPageState extends ConsumerState<FaceRecognitionPage> {
     return service.imageToUiImage(image);
   }
 
+  // Yüz tanıma sayfasına ekleyin
+  void _resetFaceRecognition() async {
+    setState(() => isLoading = true);
+
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final captainDir = Directory('${directory.path}/skyVisionControl/captain/faceRecognition');
+
+      if (await captainDir.exists()) {
+        await captainDir.delete(recursive: true);
+        debugPrint("🗑️ Face recognition data cleared");
+      }
+
+      setState(() {
+        isCaptainRegistered = false;
+        isLoading = false;
+        capturedImage = null;
+        detectedFaces.clear();
+      });
+
+      // Yüz tanıma işlemini baştan başlat
+      _captureImage();
+
+    } catch (e) {
+      debugPrint("💥 Error resetting face recognition: $e");
+      setState(() => isLoading = false);
+    }
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -322,6 +380,17 @@ class _FaceRecognitionPageState extends ConsumerState<FaceRecognitionPage> {
                 style: TextStyles.heading3,
                 textAlign: TextAlign.center,
               ),
+              const SizedBox(height: 16),
+              if (isCaptainRegistered && detectedFaces.isEmpty) ...[
+                const SizedBox(height: 16),
+                AppButton(
+                  text: 'Yüz Tanıma Sıfırla',
+                  icon: Icons.refresh,
+                  type: AppButtonType.outline,
+                  onPressed: _resetFaceRecognition,
+                  width: 220,
+                ),
+              ],
               const SizedBox(height: 16),
               Text(
                 isCaptainRegistered

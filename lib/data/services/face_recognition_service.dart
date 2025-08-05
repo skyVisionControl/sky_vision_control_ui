@@ -28,11 +28,15 @@ class FaceRecognitionService {
 
   Future<void> loadModel() async {
     try {
+      debugPrint("⏳ Loading FaceNet model...");
       final modelBuffer = await rootBundle.load("assets/mobile_face_net.tflite");
       _interpreter = Interpreter.fromBuffer(modelBuffer.buffer.asUint8List());
-      debugPrint("FaceNet model loaded successfully");
+      debugPrint("✅ FaceNet model loaded successfully");
+      _isModelLoaded = true;
     } catch (e) {
-      debugPrint("Error loading FaceNet model: $e");
+      debugPrint("💥 Error loading FaceNet model: $e");
+      _isModelLoaded = false;
+      throw Exception("Failed to load FaceNet model: $e");
     }
   }
 
@@ -97,28 +101,49 @@ class FaceRecognitionService {
   // Yüzü dosya sistemine kaydet
   Future<bool> saveCaptainFace(FaceUser captain, Uint8List faceImageBytes) async {
     try {
+      debugPrint("⏳ Starting to save captain face data...");
+
       // Klasör yapısını oluştur
       final directory = await getApplicationDocumentsDirectory();
       final captainDir = Directory('${directory.path}/skyVisionControl/captain/faceRecognition');
+
       if (!await captainDir.exists()) {
         await captainDir.create(recursive: true);
+        debugPrint("📁 Created directory: ${captainDir.path}");
       }
 
-      // Yüz vektörünü json dosyasına kaydet
-      final vectorFile = File('${captainDir.path}/face_data.json');
-      await vectorFile.writeAsString(captain.vectorList.toString());
+      // Önce eski dosyaları temizle (varsa)
+      final vectorFilePath = '${captainDir.path}/face_data.json';
+      final imageFilePath = '${captainDir.path}/me.jpg';
+
+      final oldVectorFile = File(vectorFilePath);
+      final oldImageFile = File(imageFilePath);
+
+      if (await oldVectorFile.exists()) await oldVectorFile.delete();
+      if (await oldImageFile.exists()) await oldImageFile.delete();
+
+      // Vektör verisini daha güvenli bir şekilde kaydet - basit string formatı kullan
+      final vectorFile = File(vectorFilePath);
+      final vectorString = captain.vectorList.toString();
+      await vectorFile.writeAsString(vectorString);
+
+      debugPrint("💾 Vector data saved (${captain.vectorList.length} elements)");
+      debugPrint("📄 Vector file size: ${await vectorFile.length()} bytes");
 
       // Yüz görüntüsünü kaydet
-      final imageFile = File('${captainDir.path}/me.jpg');
+      final imageFile = File(imageFilePath);
       await imageFile.writeAsBytes(faceImageBytes);
+
+      debugPrint("🖼️ Face image saved");
+      debugPrint("📄 Image file size: ${await imageFile.length()} bytes");
 
       // Kaydedilen yüzü servis içinde sakla
       registeredCaptain = captain;
 
-      debugPrint("Captain face saved successfully");
+      debugPrint("✅ Captain face saved successfully");
       return true;
     } catch (e) {
-      debugPrint("Error saving captain face: $e");
+      debugPrint("💥 Error saving captain face: $e");
       return false;
     }
   }
@@ -126,6 +151,7 @@ class FaceRecognitionService {
   // Kayıtlı yüzü kontrol et ve yükle
   Future<bool> loadCaptainFace() async {
     try {
+      debugPrint("⏳ Checking for existing captain face data...");
       final directory = await getApplicationDocumentsDirectory();
       final facePath = '${directory.path}/skyVisionControl/captain/faceRecognition/me.jpg';
       final vectorPath = '${directory.path}/skyVisionControl/captain/faceRecognition/face_data.json';
@@ -133,28 +159,87 @@ class FaceRecognitionService {
       final faceFile = File(facePath);
       final vectorFile = File(vectorPath);
 
-      if (await faceFile.exists() && await vectorFile.exists()) {
-        // Vektör verisini oku ve parse et
-        final vectorString = await vectorFile.readAsString();
-        final vectorList = vectorString
-            .replaceAll('[', '')
-            .replaceAll(']', '')
-            .split(',')
-            .map((e) => double.parse(e.trim()))
-            .toList();
+      // Dosya varlığını kontrol et
+      final faceExists = await faceFile.exists();
+      final vectorExists = await vectorFile.exists();
 
-        // Kaptanı servis içinde sakla
-        registeredCaptain = FaceUser('captain', 'Captain', vectorList);
-        debugPrint("Captain face loaded successfully");
-        return true;
+      debugPrint("📁 Face image file exists: $faceExists");
+      debugPrint("📁 Vector data file exists: $vectorExists");
+
+      if (!faceExists || !vectorExists) {
+        debugPrint("❌ Required files not found. First-time registration needed.");
+        return false;
       }
 
-      debugPrint("No saved captain face found");
-      return false;
+      try {
+        // Vektör dosyasının içeriğini oku
+        final String vectorContent = await vectorFile.readAsString();
+        debugPrint("📄 Vector file content (first 50 chars): ${vectorContent.substring(0, min(50, vectorContent.length))}");
+
+        try {
+          // Vektör içeriğini parse et
+          List<double> vectorList = [];
+
+          // Düz string formatını parse etmeye çalış
+          final cleanedStr = vectorContent
+              .replaceAll('[', '')
+              .replaceAll(']', '')
+              .trim();
+
+          if (cleanedStr.isNotEmpty) {
+            vectorList = cleanedStr
+                .split(',')
+                .map((s) => double.parse(s.trim()))
+                .toList();
+          }
+
+          if (vectorList.isEmpty) {
+            debugPrint("⚠️ Vector parsing failed - empty list");
+            return false;
+          }
+
+          debugPrint("✅ Vector parsed successfully with ${vectorList.length} elements");
+
+          // Kaptanı servis içinde sakla
+          registeredCaptain = FaceUser('captain', 'Captain', vectorList);
+          debugPrint("👤 Captain face loaded successfully");
+          if (registeredCaptain != null) {
+            // Yüklenen vektörü doğrula - en azından uzunluğu makul olmalı
+            if (registeredCaptain!.vectorList.length < 10) {
+              debugPrint("⚠️ Loaded vector seems too short (${registeredCaptain!.vectorList.length} elements)");
+              registeredCaptain = null;
+              return false;
+            }
+
+            // Vektör değerlerini kontrol et - NaN veya Infinity değerleri olmamalı
+            bool hasInvalidValues = registeredCaptain!.vectorList.any(
+                    (value) => value.isNaN || value.isInfinite
+            );
+
+            if (hasInvalidValues) {
+              debugPrint("⚠️ Vector contains invalid values (NaN or Infinity)");
+              registeredCaptain = null;
+              return false;
+            }
+          }
+          return true;
+        } catch (parseError) {
+          debugPrint("⚠️ Error parsing vector data: $parseError");
+          // Parse hatası durumunda dosyaları sil ve yeniden kayıt gerektiğini belirt
+          await faceFile.delete();
+          await vectorFile.delete();
+          debugPrint("🗑️ Corrupted files deleted. First-time registration needed.");
+          return false;
+        }
+      } catch (readError) {
+        debugPrint("⚠️ Error reading vector file: $readError");
+        return false;
+      }
     } catch (e) {
-      debugPrint("Error loading captain face: $e");
+      debugPrint("💥 Fatal error loading captain face: $e");
       return false;
     }
+
   }
 
   // Yüz karşılaştırma
@@ -202,5 +287,15 @@ class FaceRecognitionService {
   void close() {
     _interpreter.close();
     faceDetector.close();
+  }
+
+  // Model yükleme durumunu kontrol eden metod
+  bool _isModelLoaded = false;
+
+  Future<void> ensureModelLoaded() async {
+    if (!_isModelLoaded) {
+      await loadModel();
+      _isModelLoaded = true;
+    }
   }
 }
