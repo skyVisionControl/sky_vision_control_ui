@@ -17,6 +17,9 @@ import 'package:kapadokya_balon_app/presentation/providers/onboarding_providers.
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indicator.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.dart';
+import '../../../utils/id_generator.dart';
+import '../../providers/auth_providers.dart';
+import '../../providers/firebase_providers.dart';
 
 class ChecklistPage extends ConsumerStatefulWidget {
   const ChecklistPage({Key? key}) : super(key: key);
@@ -33,11 +36,52 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
   @override
   void initState() {
     super.initState();
-    // Onboarding durumunu ve checklist öğelerini yükle
+
+    // Tüm async ve provider işlemlerini widget ağacı tamamen oluşturulduktan sonra yap
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(onboardingViewModelProvider.notifier).loadOnboardingStatus();
-      ref.read(onboardingViewModelProvider.notifier).loadChecklistItems();
+      // Önce checklist verilerini yükle
+      _initChecklistSafely();
+
+      // Sonra Firebase için uçuş verisi oluştur
+      _initializeFirebaseSafely();
     });
+  }
+
+  // Checklist'i güvenli bir şekilde yükle (widget ağacı dışında)
+  void _initChecklistSafely() {
+    try {
+      ref.read(onboardingViewModelProvider.notifier).loadChecklistItems();
+    } catch (e) {
+      print('Error loading checklist items: $e');
+    }
+  }
+
+  // Firebase uçuş kaydını güvenli bir şekilde oluştur (widget ağacı dışında)
+  void _initializeFirebaseSafely() {
+    try {
+      // Kullanıcı bilgisini al
+      final userState = ref.read(authViewModelProvider);
+      final user = userState.user;
+
+      if (user == null) {
+        print('Cannot create flight in Firebase: User is null');
+        return;
+      }
+
+      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
+      final flightId = generateFlightId(user.name);
+
+      // Firebase servisini kullanarak uçuş kaydı oluştur
+      final firebaseService = ref.read(firebaseChecklistServiceProvider);
+      firebaseService.createOrUpdateFlight(
+        flightId: flightId,
+        captainId: user.id,
+      );
+
+      print('Flight created in Firebase with ID: $flightId');
+    } catch (e) {
+      print('Firebase flight creation error: $e');
+    }
   }
 
   @override
@@ -341,8 +385,8 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
               text: 'Kontrol Listesini Tamamla',
               icon: Icons.check_circle,
               onPressed: allMandatoryCompleted && !isSubmitting
-                  ? _completeChecklist
-                  : () {},
+                  ? _completeChecklistWithFirebase
+                  : null,
               isLoading: isSubmitting,
               isFullWidth: true,
             ),
@@ -354,7 +398,42 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
 
   void _toggleItemCompletion(ChecklistItem item) {
     final updatedItem = item.copyWith(isCompleted: !item.isCompleted);
+
+    // Mevcut state güncelleme
     ref.read(onboardingViewModelProvider.notifier).updateChecklistItem(updatedItem);
+
+    // Firebase'e kaydet - widget ağacının dışında
+    Future(() {
+      _saveItemToFirebaseSafely(updatedItem);
+    });
+  }
+
+  void _saveItemToFirebaseSafely(ChecklistItem item) {
+    try {
+      // Kullanıcı bilgisini al
+      final userState = ref.read(authViewModelProvider);
+      final user = userState.user;
+
+      if (user == null) {
+        print('Cannot save item to Firebase: User is null');
+        return;
+      }
+
+      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
+      final flightId = generateFlightId(user.name);
+
+      // Firebase servisini kullanarak checklist öğesini kaydet
+      final firebaseService = ref.read(firebaseChecklistServiceProvider);
+      firebaseService.saveChecklistItem(
+        item: item,
+        flightId: flightId,
+        captainId: user.id,
+      );
+
+      print('Checklist item saved to Firebase: ${item.id}');
+    } catch (e) {
+      print('Firebase item save error: $e');
+    }
   }
 
   void _showNoteDialog(ChecklistItem item) {
@@ -397,12 +476,65 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       note: _noteController.text.trim().isEmpty ? null : _noteController.text.trim(),
     );
 
+    // Mevcut state güncelleme
     ref.read(onboardingViewModelProvider.notifier).updateChecklistItem(updatedItem);
+
+    // Firebase'e kaydet - widget ağacının dışında
+    Future(() {
+      _saveItemToFirebaseSafely(updatedItem);
+    });
+
     _selectedItem = null;
   }
 
-  void _completeChecklist() {
+  // Firebase entegrasyonu ile tamamlama işlemi
+  void _completeChecklistWithFirebase() {
+    // Mevcut checklist tamamlama metodu
     ref.read(onboardingViewModelProvider.notifier).completeChecklist();
+
+    // Firebase'e kaydet - widget ağacının dışında
+    Future(() {
+      _completeChecklistInFirebaseSafely();
+    });
+  }
+
+  void _completeChecklistInFirebaseSafely() {
+    try {
+      // Kullanıcı bilgisini al
+      final userState = ref.read(authViewModelProvider);
+      final user = userState.user;
+
+      if (user == null) {
+        print('Cannot complete checklist in Firebase: User is null');
+        return;
+      }
+
+      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
+      final flightId = generateFlightId(user.name);
+
+      // Tüm checklist öğelerini al
+      final items = ref.read(onboardingViewModelProvider).checklistItems;
+
+      // Firebase servisini kullanarak işlemleri yap
+      final firebaseService = ref.read(firebaseChecklistServiceProvider);
+
+      // Önce uçuş kaydını oluştur
+      firebaseService.createOrUpdateFlight(
+        flightId: flightId,
+        captainId: user.id,
+      );
+
+      // Sonra checklist öğelerini kaydet
+      firebaseService.saveCompletedChecklist(
+        items: items,
+        flightId: flightId,
+        captainId: user.id,
+      );
+
+      print('Checklist completed and saved to Firebase with ID: $flightId');
+    } catch (e) {
+      print('Firebase checklist completion error: $e');
+    }
   }
 
   Color _getCompletionColor(int percentage) {

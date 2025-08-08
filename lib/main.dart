@@ -1,7 +1,6 @@
 // Bu dosya, uygulamanın başlangıç noktasıdır.
 // Uygulama yapılandırmasını, tema ayarlarını ve ana provider'ları başlatır.
 
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,7 +40,7 @@ class KapadokyaBalonApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
 
     return MaterialApp.router(
-      title: 'Kapadokya Balon Kaptanları',
+      title: 'Sky Vision Control',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
