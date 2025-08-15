@@ -2,9 +2,6 @@
 //
 // Alkolmetre testi onboarding sayfası.
 // Pilotların uçuş öncesi alkol seviyesini ölçmek için kullanılır.
-//
-// Yazan: Deniz Dogan
-// Tarih: 2025-07-19
 
 import 'dart:async';
 import 'dart:math';

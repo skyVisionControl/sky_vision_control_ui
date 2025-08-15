@@ -15,14 +15,14 @@ dependencies:
   flutter_svg: ^2.0.7
   cached_network_image: ^3.2.3
   shimmer: ^3.0.0
-  lottie: ^2.6.0
+  lottie: ^3.3.1
 
   # State Yönetimi
   flutter_riverpod: ^2.3.6
   riverpod_annotation: ^2.1.1
 
   # Navigasyon
-  go_router: ^10.1.0
+  go_router: ^16.1.0
 
   # Network ve Veri
   dio: ^5.3.2
@@ -31,22 +31,22 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # Yardımcı Paketler
-  intl: ^0.18.1
-  logger: ^1.4.0
-  internet_connection_checker: ^1.0.0+1
+  intl: ^0.20.2
+  logger: ^2.6.1
+  internet_connection_checker: ^3.0.1
 
   # Sensör Göstergeleri (Balon uygulaması için)
-  syncfusion_flutter_gauges: ^22.2.9
-  syncfusion_flutter_charts: ^22.2.9
+  syncfusion_flutter_gauges: ^30.2.5
+  syncfusion_flutter_charts: ^30.2.5
   equatable: ^2.0.7
   dartz: ^0.10.1
 
   # Firebase
-  firebase_core: ^3.15.2
-  cloud_firestore: ^5.6.12
-  firebase_auth: ^5.7.0
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.0
+  firebase_auth: ^6.0.1
   # Ek olarak push notification için:
-  firebase_messaging: ^15.0.0
+  firebase_messaging: ^16.0.0
 
 
   # Yerel Depolama ve Yüz Tanıma
@@ -56,10 +56,16 @@ dependencies:
   tflite_flutter: ^0.11.0
   path_provider: ^2.1.5
 
+  # Alkolmetre modülü için gerekli bağımlılıklar
+  google_mlkit_text_recognition: ^0.15.0
+  camera: ^0.11.2
+  ultralytics_yolo: ^0.1.34
+
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.2
+  flutter_lints: ^6.0.0
   mockito: ^5.4.2
   build_runner: ^2.4.6
   riverpod_generator: ^2.2.3
