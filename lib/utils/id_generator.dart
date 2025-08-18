@@ -1,20 +1,19 @@
 /// Uygulama için benzersiz ID üreten yardımcı fonksiyonlar
 
-// Uçuş ID'si oluştur
-String generateFlightId(String captainUsername) {
+// Uçuş ID'si oluştur - captainId'yi kullanarak
+String generateFlightId(String captainId) {
   final now = DateTime.now();
-  final date = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}";
-  final time = "${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
+  final dateTime = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
 
-  // CaptainUsername-YYYYMMDD-HHMMSS formatında bir ID oluştur
-  return "$captainUsername-$date-$time";
+  // captainId-flight-YYYYMMDD-HHMMSS formatında ID
+  return "$captainId-flight-$dateTime";
 }
 
-// Checklist öğesi ID'si oluştur
-String generateChecklistItemId(String flightId, String itemTitle) {
-  // flightId + title'ın ilk 10 karakteri + rastgele sayı
-  final titlePrefix = itemTitle.length > 10 ? itemTitle.substring(0, 10) : itemTitle;
-  final randomNum = DateTime.now().millisecondsSinceEpoch % 1000;
+// Checklist ID'si oluştur - captainId'yi kullanarak
+String generateChecklistId(String captainId) {
+  final now = DateTime.now();
+  final dateTime = "${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}";
 
-  return "$flightId-${titlePrefix.replaceAll(' ', '_')}-$randomNum";
+  // captainId-checklist-YYYYMMDD-HHMMSS formatında ID
+  return "$captainId-checklist-$dateTime";
 }

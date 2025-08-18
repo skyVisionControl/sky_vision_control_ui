@@ -2,9 +2,6 @@
 //
 // Uçuş öncesi kontrol listesi sayfası.
 // Pilotun uçuş öncesi tamamlaması gereken kontrolleri içerir.
-//
-// Yazan: Deniz Dogan
-// Tarih: 2025-07-19
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,11 +36,11 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
 
     // Tüm async ve provider işlemlerini widget ağacı tamamen oluşturulduktan sonra yap
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Önce checklist verilerini yükle
+      // Sadece checklist verilerini yükle
       _initChecklistSafely();
 
-      // Sonra Firebase için uçuş verisi oluştur
-      _initializeFirebaseSafely();
+      // Firebase uçuş kaydı oluşturma işlemini kaldırıyoruz
+      // Sadece checklist tamamlandığında kayıt yapacağız
     });
   }
 
@@ -56,35 +53,6 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
     }
   }
 
-  // Firebase uçuş kaydını güvenli bir şekilde oluştur (widget ağacı dışında)
-  void _initializeFirebaseSafely() {
-    try {
-      // Kullanıcı bilgisini al
-      final userState = ref.read(authViewModelProvider);
-      final user = userState.user;
-
-      if (user == null) {
-        print('Cannot create flight in Firebase: User is null');
-        return;
-      }
-
-      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
-      final flightId = generateFlightId("DenizDogan21");
-
-      // Firebase flight servisini kullanarak uçuş kaydı oluştur
-      final flightService = ref.read(firebaseFlightServiceProvider);
-      flightService.createOrUpdateFlight(
-        flightId: flightId,
-        captainId: user.id,
-        approvalStatus: 'bekliyor',
-        flightStatus: 'bekliyor',
-      );
-
-      print('Flight created in Firebase with ID: $flightId');
-    } catch (e) {
-      print('Firebase flight creation error: $e');
-    }
-  }
 
   @override
   void dispose() {
@@ -424,13 +392,6 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
       final flightId = generateFlightId("DenizDogan21");
 
-      // Firebase servisini kullanarak checklist öğesini kaydet
-      final checklistService = ref.read(firebaseChecklistServiceProvider);
-      checklistService.saveChecklistItem(
-        item: item,
-        flightId: flightId,
-        captainId: user.id,
-      );
 
       print('Checklist item saved to Firebase: ${item.id}');
     } catch (e) {
@@ -511,8 +472,8 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
         return;
       }
 
-      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur (2025-08-18 17:22:53)
-      final flightId = generateFlightId("DenizDogan21");
+      // Gerçek kaptan ID'sini al (Firebase Authentication UID)
+      final captainId = user.id;
 
       // Tüm checklist öğelerini al
       final items = ref.read(onboardingViewModelProvider).checklistItems;
@@ -521,25 +482,27 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       final checklistService = ref.read(firebaseChecklistServiceProvider);
       final flightService = ref.read(firebaseFlightServiceProvider);
 
-      // Önce uçuş kaydını oluştur/güncelle
-      flightService.createOrUpdateFlight(
-        flightId: flightId,
-        captainId: user.id,
+      // Adım 1: Uçuş kaydı oluştur
+      flightService.createFlight(
+        captainId: captainId,
         approvalStatus: 'bekliyor',
         flightStatus: 'bekliyor',
-      );
+      ).then((flightId) {
+        // Adım 2: Checklist kaydı oluştur
+        checklistService.saveCompletedChecklist(
+          items: items,
+          flightId: flightId,
+          captainId: captainId,
+        ).then((checklistId) {
+          // Adım 3: Uçuş kaydında checklist'i tamamlandı olarak işaretle
+          flightService.markChecklistCompleted(
+            flightId: flightId,
+            checklistId: checklistId,
+          );
 
-      // Sonra tüm checklist öğelerini kaydet
-      checklistService.saveCompletedChecklist(
-        items: items,
-        flightId: flightId,
-        captainId: user.id,
-      );
-
-      // Uçuş kaydında checklist'i tamamlandı olarak işaretle
-      flightService.completeChecklist(flightId: flightId);
-
-      print('Checklist completed and saved to Firebase with ID: $flightId');
+          print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
+        });
+      });
     } catch (e) {
       print('Firebase checklist completion error: $e');
     }
