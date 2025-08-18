@@ -10,7 +10,6 @@ import 'package:kapadokya_balon_app/domain/usecases/auth/sign_in_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/sign_out_usecase.dart';
 
 import '../../core/error/failures.dart';
-import '../../domain/usecases/auth/check_email_exists_usecase.dart';
 
 class AuthState {
   final User? user;
@@ -55,7 +54,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
   final SignInUseCase _signInUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
   final SignOutUseCase _signOutUseCase;
-  final CheckEmailExistsUseCase _checkEmailExistsUseCase;
 
   StreamSubscription<User?>? _userSubscription;
 
@@ -65,7 +63,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
       this._signInUseCase,
       this._resetPasswordUseCase,
       this._signOutUseCase,
-      this._checkEmailExistsUseCase,
       ) : super(AuthState()) {
     _init();
   }
@@ -119,10 +116,6 @@ class AuthViewModel extends StateNotifier<AuthState> {
     );
   }
 
-  // Email kontrolü metodu
-  Future<Either<Failure, bool>> checkEmailExists(String email) {
-    return _checkEmailExistsUseCase(email);
-  }
 
 // Şifre sıfırlama
   Future<void> resetPassword(String email) async {

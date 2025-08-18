@@ -77,20 +77,6 @@ class FirebaseAuthService implements AuthDataSource {
     }
   }
 
-  @override
-  Future<Either<Failure, bool>> checkEmailExists(String email) async {
-    try {
-      final methods = await _firebaseAuth.fetchSignInMethodsForEmail(email);
-      return Right(methods.isNotEmpty);
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'invalid-email') {
-        return Left(AuthenticationFailure(message: 'Geçersiz e-posta formatı.'));
-      }
-      return Left(AuthenticationFailure(message: 'E-posta kontrolü sırasında bir hata oluştu: ${e.message}'));
-    } catch (e) {
-      return Left(AuthenticationFailure(message: 'Beklenmeyen bir hata oluştu: $e'));
-    }
-  }
 
   @override
   Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {

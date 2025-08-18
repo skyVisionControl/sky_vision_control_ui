@@ -22,10 +22,6 @@ class AuthRepositoryImpl implements AuthRepository {
     return _authDataSource.signInWithEmailAndPassword(email, password);
   }
 
-  @override
-  Future<Either<Failure, bool>> checkEmailExists(String email) {
-    return _authDataSource.checkEmailExists(email);
-  }
 
   @override
   Future<Either<Failure, void>> resetPassword(String email) {

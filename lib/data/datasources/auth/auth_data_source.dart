@@ -17,5 +17,4 @@ abstract class AuthDataSource {
   Future<Either<Failure, UserModel>> registerWithEmailAndPassword(
       String email, String password, String name);
 
-  Future<Either<Failure, bool>> checkEmailExists(String email);
 }
