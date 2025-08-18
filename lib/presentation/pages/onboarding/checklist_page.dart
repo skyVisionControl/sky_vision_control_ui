@@ -69,13 +69,15 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       }
 
       // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
-      final flightId = generateFlightId(user.name);
+      final flightId = generateFlightId("DenizDogan21");
 
-      // Firebase servisini kullanarak uçuş kaydı oluştur
-      final firebaseService = ref.read(firebaseChecklistServiceProvider);
-      firebaseService.createOrUpdateFlight(
+      // Firebase flight servisini kullanarak uçuş kaydı oluştur
+      final flightService = ref.read(firebaseFlightServiceProvider);
+      flightService.createOrUpdateFlight(
         flightId: flightId,
         captainId: user.id,
+        approvalStatus: 'bekliyor',
+        flightStatus: 'bekliyor',
       );
 
       print('Flight created in Firebase with ID: $flightId');
@@ -420,11 +422,11 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       }
 
       // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
-      final flightId = generateFlightId(user.name);
+      final flightId = generateFlightId("DenizDogan21");
 
       // Firebase servisini kullanarak checklist öğesini kaydet
-      final firebaseService = ref.read(firebaseChecklistServiceProvider);
-      firebaseService.saveChecklistItem(
+      final checklistService = ref.read(firebaseChecklistServiceProvider);
+      checklistService.saveChecklistItem(
         item: item,
         flightId: flightId,
         captainId: user.id,
@@ -509,27 +511,33 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
         return;
       }
 
-      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur
-      final flightId = generateFlightId(user.name);
+      // Sabit tarih ve saat bilgisiyle bir uçuş ID'si oluştur (2025-08-18 17:22:53)
+      final flightId = generateFlightId("DenizDogan21");
 
       // Tüm checklist öğelerini al
       final items = ref.read(onboardingViewModelProvider).checklistItems;
 
-      // Firebase servisini kullanarak işlemleri yap
-      final firebaseService = ref.read(firebaseChecklistServiceProvider);
+      // Firebase servislerini al
+      final checklistService = ref.read(firebaseChecklistServiceProvider);
+      final flightService = ref.read(firebaseFlightServiceProvider);
 
-      // Önce uçuş kaydını oluştur
-      firebaseService.createOrUpdateFlight(
+      // Önce uçuş kaydını oluştur/güncelle
+      flightService.createOrUpdateFlight(
         flightId: flightId,
         captainId: user.id,
+        approvalStatus: 'bekliyor',
+        flightStatus: 'bekliyor',
       );
 
-      // Sonra checklist öğelerini kaydet
-      firebaseService.saveCompletedChecklist(
+      // Sonra tüm checklist öğelerini kaydet
+      checklistService.saveCompletedChecklist(
         items: items,
         flightId: flightId,
         captainId: user.id,
       );
+
+      // Uçuş kaydında checklist'i tamamlandı olarak işaretle
+      flightService.completeChecklist(flightId: flightId);
 
       print('Checklist completed and saved to Firebase with ID: $flightId');
     } catch (e) {
