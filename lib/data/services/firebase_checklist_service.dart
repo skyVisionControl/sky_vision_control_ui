@@ -27,7 +27,6 @@ class FirebaseChecklistService extends FirebaseBaseService {
       await firestore.collection('checklists').doc(checklistId).set({
         'id': checklistId,
         'flightId': flightId,
-        'captainId': captainId,
         'isCompleted': completedItemsCount == totalItemsCount,
         'completedItemsCount': completedItemsCount,
         'totalItemsCount': totalItemsCount,

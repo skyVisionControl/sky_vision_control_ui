@@ -23,8 +23,6 @@ class FirebaseFlightService extends FirebaseBaseService {
         'flightStatus': flightStatus,     // uçuşta, bekliyor, bitirdi
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
-        'checklistCompleted': false,
-        'checklistCompletedAt': null,
       });
 
       print('Flight created in Firebase: $flightId');
@@ -35,22 +33,20 @@ class FirebaseFlightService extends FirebaseBaseService {
     }
   }
 
-  /// Uçuş kaydında checklist'i tamamlandı olarak işaretle
-  Future<void> markChecklistCompleted({
+  /// Uçuş kaydına checklist ID'sini ekle
+  Future<void> addChecklistReference({
     required String flightId,
     required String checklistId,
   }) async {
     try {
       await firestore.collection('flights').doc(flightId).update({
-        'checklistCompleted': true,
-        'checklistCompletedAt': FieldValue.serverTimestamp(),
         'checklistId': checklistId,
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      print('Flight checklist marked as completed: $flightId');
+      print('Flight updated with checklist reference: $flightId -> $checklistId');
     } catch (e) {
-      print('Error marking checklist as completed: $e');
+      print('Error updating flight with checklist reference: $e');
       rethrow;
     }
   }

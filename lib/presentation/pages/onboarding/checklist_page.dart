@@ -482,6 +482,10 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       final checklistService = ref.read(firebaseChecklistServiceProvider);
       final flightService = ref.read(firebaseFlightServiceProvider);
 
+      // 2025-08-19 09:34:19 tarihini ve DenizDogan21 kullanıcı adını kullan
+      final dateTime = "2025-08-19 09:34:19";
+      print('Creating flight and checklist records for $captainId at $dateTime');
+
       // Adım 1: Uçuş kaydı oluştur
       flightService.createFlight(
         captainId: captainId,
@@ -494,8 +498,8 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
           flightId: flightId,
           captainId: captainId,
         ).then((checklistId) {
-          // Adım 3: Uçuş kaydında checklist'i tamamlandı olarak işaretle
-          flightService.markChecklistCompleted(
+          // Adım 3: Uçuş kaydına checklist referansını ekle
+          flightService.addChecklistReference(
             flightId: flightId,
             checklistId: checklistId,
           );
