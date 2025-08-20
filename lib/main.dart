@@ -12,12 +12,14 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+/*
   // Ekranın yönünü sadece yatay moda kilitle (tablet için)
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
+
+ */
 
   // Uygulama başlangıç yapılandırmaları burada yapılabilir
   // Örneğin: Hive, SharedPreferences, Firebase başlatma

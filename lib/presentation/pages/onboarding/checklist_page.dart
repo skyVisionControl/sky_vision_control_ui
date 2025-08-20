@@ -16,6 +16,7 @@ import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indica
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.dart';
 import '../../../utils/id_generator.dart';
 import '../../providers/auth_providers.dart';
+import '../../providers/breathalyzer_providers.dart';
 import '../../providers/firebase_providers.dart';
 
 class ChecklistPage extends ConsumerStatefulWidget {
@@ -461,7 +462,7 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
     });
   }
 
-  void _completeChecklistInFirebaseSafely() {
+  void _completeChecklistInFirebaseSafely() async {
     try {
       // Kullanıcı bilgisini al
       final userState = ref.read(authViewModelProvider);
@@ -481,32 +482,38 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       // Firebase servislerini al
       final checklistService = ref.read(firebaseChecklistServiceProvider);
       final flightService = ref.read(firebaseFlightServiceProvider);
-
-      // 2025-08-19 09:34:19 tarihini ve DenizDogan21 kullanıcı adını kullan
-      final dateTime = "2025-08-19 09:34:19";
-      print('Creating flight and checklist records for $captainId at $dateTime');
+      final breathalyzerService = ref.read(firebaseBreathalyzerServiceProvider);
 
       // Adım 1: Uçuş kaydı oluştur
-      flightService.createFlight(
+      final flightId = await flightService.createFlight(
         captainId: captainId,
         approvalStatus: 'bekliyor',
         flightStatus: 'bekliyor',
-      ).then((flightId) {
-        // Adım 2: Checklist kaydı oluştur
-        checklistService.saveCompletedChecklist(
-          items: items,
-          flightId: flightId,
-          captainId: captainId,
-        ).then((checklistId) {
-          // Adım 3: Uçuş kaydına checklist referansını ekle
-          flightService.addChecklistReference(
-            flightId: flightId,
-            checklistId: checklistId,
-          );
+      );
 
-          print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
-        });
-      });
+      // Adım 2: Checklist kaydı oluştur
+      final checklistId = await checklistService.saveCompletedChecklist(
+        items: items,
+        flightId: flightId,
+        captainId: captainId,
+      );
+
+      // Adım 3: Breathalyzer testini uçuşla ilişkilendir
+      final breathalyzerState = ref.read(breathalyzerViewModelProvider);
+      if (breathalyzerState.breathalyzerId != null) {
+        await breathalyzerService.linkBreathalyzerToFlight(
+          breathalyzerState.breathalyzerId!,
+          flightId,
+        );
+      }
+
+      // Adım 4: Uçuş kaydına checklist referansını ekle
+      await flightService.addChecklistReference(
+        flightId: flightId,
+        checklistId: checklistId,
+      );
+
+      print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
     } catch (e) {
       print('Firebase checklist completion error: $e');
     }

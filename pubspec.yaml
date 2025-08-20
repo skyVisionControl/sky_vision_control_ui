@@ -60,6 +60,7 @@ dependencies:
   google_mlkit_text_recognition: ^0.15.0
   camera: ^0.11.2
   ultralytics_yolo: ^0.1.34
+  firebase_storage: ^13.0.0
 
 
 dev_dependencies:

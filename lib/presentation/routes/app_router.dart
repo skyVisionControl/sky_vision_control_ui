@@ -7,6 +7,7 @@ import 'package:kapadokya_balon_app/presentation/pages/auth/forgot_password_page
 import 'package:kapadokya_balon_app/presentation/pages/auth/login_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/flight/flight_summary_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/approval_waiting_page.dart';
+import 'package:kapadokya_balon_app/presentation/pages/onboarding/breathalyzer_test_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/checklist_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/face_recognition_page.dart';
 import 'package:kapadokya_balon_app/presentation/pages/onboarding/alcohol_test_page.dart';
@@ -36,6 +37,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: RouteConstants.faceRecognition,
         builder: (context, state) => const FaceRecognitionPage(),
+      ),
+      GoRoute(
+        path: RouteConstants.breathalyzerTest,
+        builder: (context, state) {
+          final flightId = state.uri.queryParameters['flightId'] ?? '';
+          return BreathalyzerTestPage(flightId: flightId);
+        },
       ),
       GoRoute(
         path: RouteConstants.alcoholTest,

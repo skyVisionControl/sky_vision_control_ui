@@ -215,7 +215,7 @@ class _FaceRecognitionPageState extends ConsumerState<FaceRecognitionPage> {
               message: 'Kaptan yüzü başarıyla doğrulandı.',
               onConfirm: () {
                 // Sonraki sayfaya git
-                context.replace(RouteConstants.alcoholTest);
+                context.replace(RouteConstants.breathalyzerTest);
               }
           );
         }

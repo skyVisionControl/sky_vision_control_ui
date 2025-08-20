@@ -13,6 +13,7 @@ class RouteConstants {
   // Onboarding routes
   static const String faceRecognition = '/onboarding/face-recognition';
   static const String alcoholTest = '/onboarding/alcohol-test';
+  static const String breathalyzerTest = '/onboarding/breathalyzer-test';
   static const String checklist = '/onboarding/checklist';
   static const String approvalWaiting = '/onboarding/approval-waiting';
 

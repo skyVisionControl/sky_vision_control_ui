@@ -1,12 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/services/firebase_checklist_service.dart';
 import '../../data/services/firebase_flight_service.dart';
 import '../../data/services/firebase_captain_service.dart';
+import '../../data/services/firebase_breathalyzer_service.dart';
 
 // Firebase instance provider
 final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
   return FirebaseFirestore.instance;
+});
+
+// Firebase storage provider
+final firebaseStorageProvider = Provider<FirebaseStorage>((ref) {
+  return FirebaseStorage.instance;
 });
 
 // Firebase checklist service provider
@@ -25,4 +32,11 @@ final firebaseFlightServiceProvider = Provider<FirebaseFlightService>((ref) {
 final firebaseCaptainServiceProvider = Provider<FirebaseCaptainService>((ref) {
   final firestore = ref.watch(firebaseFirestoreProvider);
   return FirebaseCaptainService(firestore: firestore);
+});
+
+// Firebase breathalyzer service provider
+final firebaseBreathalyzerServiceProvider = Provider<FirebaseBreathalyzerService>((ref) {
+  final firestore = ref.watch(firebaseFirestoreProvider);
+  final storage = ref.watch(firebaseStorageProvider);
+  return FirebaseBreathalyzerService(firestore: firestore, storage: storage);
 });

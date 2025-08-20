@@ -1,3 +1,4 @@
+/// Alkolmetre testi sırasında YOLO tarafından tespit edilen nesneler
 class Detection {
   final String label;
   final double confidence;
