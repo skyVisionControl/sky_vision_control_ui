@@ -31,6 +31,7 @@ class FlightStatus extends Equatable {
   final double latitude;
   final double longitude;
   final bool hasGPSSignal;
+  final Map<String, dynamic>? telemetry;
 
   const FlightStatus({
     required this.flightId,
@@ -48,6 +49,7 @@ class FlightStatus extends Equatable {
     this.latitude = 0.0,
     this.longitude = 0.0,
     this.hasGPSSignal = true,
+    this.telemetry,
   });
 
   bool get isFlightActive => endTime == null;
@@ -71,6 +73,7 @@ class FlightStatus extends Equatable {
     double? latitude,
     double? longitude,
     bool? hasGPSSignal,
+    Map<String, dynamic>? telemetry,
   }) {
     return FlightStatus(
       flightId: flightId ?? this.flightId,
@@ -88,6 +91,7 @@ class FlightStatus extends Equatable {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       hasGPSSignal: hasGPSSignal ?? this.hasGPSSignal,
+      telemetry: telemetry ?? this.telemetry,
     );
   }
 
@@ -95,6 +99,6 @@ class FlightStatus extends Equatable {
   List<Object?> get props => [
     flightId, startTime, endTime, currentPhase, maxAltitude, currentAltitude,
     groundSpeed, verticalSpeed, fuelLevel, hasActiveWarnings,
-    hasActiveCriticalAlerts, isEmergencyMode, latitude, longitude, hasGPSSignal
+    hasActiveCriticalAlerts, isEmergencyMode, latitude, longitude, hasGPSSignal, telemetry
   ];
 }

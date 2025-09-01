@@ -273,6 +273,15 @@ class AlertDetailCard extends StatelessWidget {
         return 'Dikey Hız';
       case SensorType.gpsPosition:
         return 'GPS Konumu';
+      case SensorType.humidity:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case SensorType.acceleration:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case SensorType.angularVelocity:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 }

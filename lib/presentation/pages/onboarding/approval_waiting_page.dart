@@ -295,27 +295,34 @@ class _ApprovalWaitingPageState extends ConsumerState<ApprovalWaitingPage> {
   }
 
   void _simulateApproval() {
+    if (!mounted) return; // ✅ ekle
+
     final status = ref.read(onboardingViewModelProvider).status;
     if (status == null || status.approvalStatus != ApprovalStatus.pending) return;
 
     ref.read(onboardingRepositoryProvider).updateApprovalStatus(
       ApprovalStatus.approved,
     ).then((_) {
+      if (!mounted) return; // ✅ ekle
       ref.read(onboardingViewModelProvider.notifier).loadOnboardingStatus();
     });
   }
 
   void _simulateRejection() {
+    if (!mounted) return; // ✅ ekle
+
     final status = ref.read(onboardingViewModelProvider).status;
     if (status == null || status.approvalStatus != ApprovalStatus.pending) return;
 
     ref.read(onboardingRepositoryProvider).updateApprovalStatus(
       ApprovalStatus.rejected,
-      rejectionReason: 'Hava koşulları uygun değil. Rüzgar hızı çok yüksek. Lütfen kontrolleri tekrar yapın ve meteorolojik şartları gözden geçirin.',
+      rejectionReason: 'Hava koşulları uygun değil...',
     ).then((_) {
+      if (!mounted) return; // ✅ ekle
       ref.read(onboardingViewModelProvider.notifier).loadOnboardingStatus();
     });
   }
+
 
   ApprovalStatus _mapApprovalStatus(ApprovalStatus status) {
     switch (status) {

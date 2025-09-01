@@ -373,6 +373,15 @@ class _ReportIssuePageState extends ConsumerState<ReportIssuePage> {
         return 'Dikey Hız Sensörü';
       case SensorType.gpsPosition:
         return 'GPS/Konum Sistemi';
+      case SensorType.humidity:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case SensorType.acceleration:
+        // TODO: Handle this case.
+        throw UnimplementedError();
+      case SensorType.angularVelocity:
+        // TODO: Handle this case.
+        throw UnimplementedError();
     }
   }
 }

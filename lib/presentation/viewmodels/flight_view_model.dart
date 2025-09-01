@@ -1,13 +1,7 @@
-// flight_view_model.dart
-//
-// Uçuş ekranları için view model.
-//
-// Yazan: Deniz Dogan
-// Tarih: 2025-07-19
-
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
 import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
 import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
@@ -69,6 +63,7 @@ class FlightViewModel extends StateNotifier<FlightState> {
   final ObserveSensorDataUseCase _observeSensorDataUseCase;
   final ObserveFlightStatusUseCase _observeFlightStatusUseCase;
   final ObserveAlertsUseCase _observeAlertsUseCase;
+  final FirebaseAuth _auth;
 
   StreamSubscription<List<SensorData>>? _sensorDataSubscription;
   StreamSubscription<FlightStatus>? _flightStatusSubscription;
@@ -82,11 +77,14 @@ class FlightViewModel extends StateNotifier<FlightState> {
       this._endFlightUseCase,
       this._observeSensorDataUseCase,
       this._observeFlightStatusUseCase,
-      this._observeAlertsUseCase,
-      ) : super(FlightState()) {
-    // Akışlara abone ol
+      this._observeAlertsUseCase, {
+        FirebaseAuth? auth,
+      })  : _auth = auth ?? FirebaseAuth.instance,
+        super(FlightState()) {
     _startObserving();
   }
+  String get _userId => _auth.currentUser?.uid ?? "";
+  String get _sensorUserId => state.flightStatus?.telemetry?['rtdbUserId'] ?? _userId;
 
   @override
   void dispose() {
@@ -95,34 +93,52 @@ class FlightViewModel extends StateNotifier<FlightState> {
   }
 
   void _startObserving() {
-    // Sensör verilerini izle
-    _sensorDataSubscription = _observeSensorDataUseCase().listen(
-          (data) {
-        state = state.copyWith(sensorData: data);
-      },
-      onError: (error) {
-        state = state.copyWith(errorMessage: 'Sensör verisi izleme hatası: $error');
-      },
-    );
+    print('_sensorUserId: $_sensorUserId');
+    _stopObserving();
 
-    // Uçuş durumunu izle
+    // 🔴 Uçuş durumu
     _flightStatusSubscription = _observeFlightStatusUseCase().listen(
           (status) {
         state = state.copyWith(flightStatus: status);
       },
-      onError: (error) {
-        state = state.copyWith(errorMessage: 'Uçuş durumu izleme hatası: $error');
+      onError: (e) {
+        state = state.copyWith(errorMessage: 'Uçuş durumu dinlenirken hata: $e');
       },
     );
 
-    // Uyarıları izle
+    // 🔴 Sensör verileri
+    if (_userId.isNotEmpty) {
+      _sensorDataSubscription = _observeSensorDataUseCase.execute(_sensorUserId).listen(
+                (data) {
+              state = state.copyWith(sensorData: data);
+            },
+            onError: (e) {
+              state = state.copyWith(
+                  errorMessage: 'Sensör verileri dinlenirken hata: $e');
+            },
+          );
+    }
+
+    // 🔴 Uyarılar
     _alertsSubscription = _observeAlertsUseCase().listen(
           (alerts) {
         state = state.copyWith(activeAlerts: alerts);
       },
-      onError: (error) {
-        state = state.copyWith(errorMessage: 'Uyarı izleme hatası: $error');
+      onError: (e) {
+        state = state.copyWith(errorMessage: 'Uyarılar dinlenirken hata: $e');
       },
+    );
+  }
+
+  Future<void> loadInitialData() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+    final result = await _getFlightStatusUseCase();
+
+    result.fold(
+          (failure) => state =
+          state.copyWith(isLoading: false, errorMessage: failure.message),
+          (status) =>
+          state.copyWith(isLoading: false, flightStatus: status),
     );
   }
 
@@ -132,53 +148,20 @@ class FlightViewModel extends StateNotifier<FlightState> {
     _alertsSubscription?.cancel();
   }
 
-  // Verileri ilk kez yükle
-  Future<void> loadInitialData() async {
-    state = state.copyWith(isLoading: true, errorMessage: null);
+  Future<void> loadSensorData() async {
+    print('_sensorUserId: $_sensorUserId');
+    if (_userId.isEmpty) return;
 
-    // Uçuş durumunu yükle
-    final flightStatusResult = await _getFlightStatusUseCase();
-
-    flightStatusResult.fold(
-          (failure) => state = state.copyWith(
-        isLoading: false,
-        errorMessage: 'Uçuş durumu yüklenirken hata: ${failure.message}',
-      ),
-          (flightStatus) async {
-        // Sensör verilerini yükle
-        final sensorDataResult = await _getAllSensorDataUseCase();
-
-        sensorDataResult.fold(
-              (failure) => state = state.copyWith(
-            isLoading: false,
-            flightStatus: flightStatus,
-            errorMessage: 'Sensör verileri yüklenirken hata: ${failure.message}',
-          ),
-              (sensorData) async {
-            // Uyarıları yükle
-            final alertsResult = await _getActiveAlertsUseCase();
-
-            alertsResult.fold(
-                  (failure) => state = state.copyWith(
-                isLoading: false,
-                flightStatus: flightStatus,
-                sensorData: sensorData,
-                errorMessage: 'Uyarılar yüklenirken hata: ${failure.message}',
-              ),
-                  (alerts) => state = state.copyWith(
-                isLoading: false,
-                flightStatus: flightStatus,
-                sensorData: sensorData,
-                activeAlerts: alerts,
-              ),
-            );
-          },
-        );
-      },
-    );
+    final sensors = await _getAllSensorDataUseCase.execute(_sensorUserId);
+    try {
+      final sensors = await _getAllSensorDataUseCase.execute(_userId);
+      state = state.copyWith(isLoading: false, sensorData: sensors);
+    } catch (e) {
+      state = state.copyWith(
+          isLoading: false, errorMessage: "Sensör verisi alınamadı: $e");
+    }
   }
 
-  // Uçuş evresini güncelle
   Future<void> updateFlightPhase(FlightPhase phase) async {
     state = state.copyWith(isChangingPhase: true, errorMessage: null);
 
@@ -196,7 +179,6 @@ class FlightViewModel extends StateNotifier<FlightState> {
     );
   }
 
-  // Uçuşu sonlandır
   Future<void> endFlight() async {
     state = state.copyWith(isEndingFlight: true, errorMessage: null);
 
@@ -214,16 +196,14 @@ class FlightViewModel extends StateNotifier<FlightState> {
     );
   }
 
-  // Sensör verisi getir
   SensorData? getSensorData(SensorType type) {
     try {
-      return state.sensorData.firstWhere((sensor) => sensor.type == type);
-    } catch (e) {
+      return state.sensorData.firstWhere((s) => s.type == type);
+    } catch (_) {
       return null;
     }
   }
 
-  // Hata mesajını temizle
   void clearError() {
     state = state.copyWith(errorMessage: null);
   }

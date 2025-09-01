@@ -464,41 +464,40 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
 
   void _completeChecklistInFirebaseSafely() async {
     try {
-      // Kullanıcı bilgisini al
       final userState = ref.read(authViewModelProvider);
       final user = userState.user;
-
       if (user == null) {
         print('Cannot complete checklist in Firebase: User is null');
         return;
       }
 
-      // Gerçek kaptan ID'sini al (Firebase Authentication UID)
       final captainId = user.id;
-
-      // Tüm checklist öğelerini al
       final items = ref.read(onboardingViewModelProvider).checklistItems;
 
-      // Firebase servislerini al
       final checklistService = ref.read(firebaseChecklistServiceProvider);
       final flightService = ref.read(firebaseFlightServiceProvider);
       final breathalyzerService = ref.read(firebaseBreathalyzerServiceProvider);
 
-      // Adım 1: Uçuş kaydı oluştur
+      // ✅ RTDB'de telemetriyi gönderen kullanıcı ID’yi belirle
+      // Eğer telemetriyi farklı bir cihaz/UID gönderiyorsa burada o UID'yi kullan.
+      final telemetryUserId = captainId; // veya 'k1EJQXvcsydXeREjLunVwHPE9wr2'
+
+      // 1) Flight oluştur
       final flightId = await flightService.createFlight(
         captainId: captainId,
         approvalStatus: 'bekliyor',
         flightStatus: 'bekliyor',
+        telemetryUserId: telemetryUserId, // ✅ RTDB ilişkilendirmesi
       );
 
-      // Adım 2: Checklist kaydı oluştur
+      // 2) Checklist kaydı oluştur
       final checklistId = await checklistService.saveCompletedChecklist(
         items: items,
         flightId: flightId,
         captainId: captainId,
       );
 
-      // Adım 3: Breathalyzer testini uçuşla ilişkilendir
+      // 3) Breathalyzer uçuşla ilişkilendir
       final breathalyzerState = ref.read(breathalyzerViewModelProvider);
       if (breathalyzerState.breathalyzerId != null) {
         await breathalyzerService.linkBreathalyzerToFlight(
@@ -507,11 +506,14 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
         );
       }
 
-      // Adım 4: Uçuş kaydına checklist referansını ekle
+      // 4) Flight dokümanını checklist referansıyla güncelle
       await flightService.addChecklistReference(
         flightId: flightId,
         checklistId: checklistId,
       );
+
+      // ✅ 5) Uygulama genelinde aktif flightId'yi set et
+      ref.read(currentFlightIdProvider.notifier).state = flightId;
 
       print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
     } catch (e) {

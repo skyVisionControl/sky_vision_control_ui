@@ -1,16 +1,12 @@
-// observe_sensor_data_usecase.dart
-//
-// Sensör verilerinin akışını izleyen use case.
-
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
-import 'package:kapadokya_balon_app/domain/repositories/flight_repository.dart';
+import '../../entities/sensor_data.dart';
+import '../../repositories/sensor_repository.dart';
 
 class ObserveSensorDataUseCase {
-  final FlightRepository repository;
+  final SensorRepository _repository;
 
-  ObserveSensorDataUseCase(this.repository);
+  ObserveSensorDataUseCase(this._repository);
 
-  Stream<List<SensorData>> call() {
-    return repository.observeSensorData();
+  Stream<List<SensorData>> execute(String userId) {
+    return _repository.observeSensorData(userId);
   }
 }

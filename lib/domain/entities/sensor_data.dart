@@ -12,7 +12,10 @@ enum SensorType {
   speed,
   fuelLevel,
   verticalSpeed,
-  gpsPosition
+  gpsPosition,
+  humidity,        // Eklendi
+  acceleration,    // Eklendi
+  angularVelocity  // Eklendi
 }
 
 enum AlertLevel {

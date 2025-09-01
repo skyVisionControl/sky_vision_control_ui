@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/core/themes/app_theme.dart';
 import 'package:kapadokya_balon_app/presentation/routes/app_router.dart';
-
+import 'package:firebase_database/firebase_database.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -25,6 +25,12 @@ void main() async {
   // Örneğin: Hive, SharedPreferences, Firebase başlatma
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // ✅ RTDB doğru region’da açılıyor
+  final europeDb = FirebaseDatabase.instanceFor(
+    app: Firebase.app(),
+    databaseURL: 'https://sky-vision-control-5ca1b-default-rtdb.europe-west1.firebasedatabase.app',
   );
 
   runApp(
