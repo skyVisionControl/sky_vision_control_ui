@@ -1,7 +1,16 @@
+// sensor_dashboard_page.dart (güvenli tam sürüm)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../domain/entities/sensor_data.dart';
 import '../../providers/flight_providers.dart';
+
+// import ettiğimiz özel widget'lar
+import '../../widgets/sensors/accel_pressure_altitude_display.dart';
+import '../../widgets/sensors/speed_gauge.dart';
+import '../../widgets/sensors/humidity_gauge.dart';
+import '../../widgets/sensors/temperature_gauge.dart';
+import '../../widgets/sensors/direction_compass.dart';
+import '../../widgets/sensors/gps_display.dart';
 
 class SensorDashboardPage extends ConsumerWidget {
   const SensorDashboardPage({super.key});
@@ -13,123 +22,101 @@ class SensorDashboardPage extends ConsumerWidget {
     if (flightState.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     if (flightState.errorMessage != null) {
       return Scaffold(body: Center(child: Text(flightState.errorMessage!)));
     }
 
     final sensors = flightState.sensorData;
-    final phase = flightState.flightStatus?.currentPhase ?? 'Bilinmiyor';
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Balon Kaptanı Dashboard'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Mevcut Uçuş Aşaması: $phase', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 16),
-            Text('Sensör Verileri:', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1.5,
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            children: [
+              // Üst kısım → hız göstergesi + irtifa
+              Expanded(
+                flex: 3,
+                child: Row(
+                  children: [
+                    Expanded(child: _buildOrPlaceholder(_find(sensors, SensorType.speed), (s) => SpeedGauge(sensor: s))),
+                  ],
+                ),
               ),
-              itemCount: sensors.length,
-              itemBuilder: (context, index) {
-                final sensor = sensors[index];
-                return _buildSensorCard(sensor);
-              },
-            ),
-          ],
+              const SizedBox(height: 12),
+
+              // Orta kısım → nem, sıcaklık, yön, dikey hız
+              Expanded(
+                flex: 2,
+                child: Row(
+                  children: [
+                    Expanded(child: _buildOrPlaceholder(_find(sensors, SensorType.humidity), (s) => HumidityGauge(sensor: s))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildOrPlaceholder(_find(sensors, SensorType.temperature), (s) => TemperatureGauge(sensor: s))),
+                    const SizedBox(width: 12),
+                    Expanded(child: _buildOrPlaceholder(_find(sensors, SensorType.direction), (s) => DirectionCompass(sensor: s))),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Alt kısım → GPS, ivme, açısal hız
+              Expanded(
+                flex: 2,
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 8,
+                      child: _buildOrPlaceholder(
+                        _find(sensors, SensorType.gpsPosition),
+                            (s) => GpsDisplay(sensor: s),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 4,
+                      child: AccelPressureAltitudeDisplay(
+                        acceleration: _find(sensors, SensorType.acceleration),
+                        pressure: _find(sensors, SensorType.pressure),
+                        altitude: _find(sensors, SensorType.altitude),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSensorCard(SensorData sensor) {
-    final color = _getAlertColor(sensor.alertLevel);
-    final icon = _getSensorIcon(sensor.type);
+  /// Sensör listesinden istenen tipi bul (bulunamazsa null döner)
+  SensorData? _find(List<SensorData> sensors, SensorType type) {
+    try {
+      return sensors.firstWhere((s) => s.type == type);
+    } catch (_) {
+      return null;
+    }
+  }
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: color, width: 2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
-            Text(
-              '${sensor.type.toString().split('.').last}',
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${sensor.value.toStringAsFixed(2)} ${sensor.unit}',
-              style: const TextStyle(fontSize: 18),
-            ),
-            if (sensor.secondaryValue != null)
-              Text(
-                'İkincil: ${sensor.secondaryValue!.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-          ],
+  /// Eğer sensör varsa widget göster, yoksa placeholder
+  Widget _buildOrPlaceholder(SensorData? sensor, Widget Function(SensorData) builder) {
+    if (sensor == null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.grey[900],
+          borderRadius: BorderRadius.circular(12),
         ),
-      ),
-    );
-  }
-
-  Color _getAlertColor(AlertLevel level) {
-    switch (level) {
-      case AlertLevel.none:
-        return Colors.green;
-      case AlertLevel.info:
-        return Colors.blue;
-      case AlertLevel.warning:
-        return Colors.orange;
-      case AlertLevel.critical:
-        return Colors.red;
+        child: const Center(
+          child: Text(
+            "Veri yok",
+            style: TextStyle(color: Colors.white70),
+          ),
+        ),
+      );
     }
-  }
-
-  IconData _getSensorIcon(SensorType type) {
-    switch (type) {
-      case SensorType.altitude:
-        return Icons.height;
-      case SensorType.temperature:
-        return Icons.thermostat;
-      case SensorType.pressure:
-        return Icons.compress;
-      case SensorType.direction:
-        return Icons.explore;
-      case SensorType.speed:
-        return Icons.speed;
-      case SensorType.fuelLevel:
-        return Icons.local_gas_station;
-      case SensorType.verticalSpeed:
-        return Icons.trending_up;
-      case SensorType.gpsPosition:
-        return Icons.location_on;
-      case SensorType.humidity:
-        return Icons.water_drop;
-      case SensorType.acceleration:
-        return Icons.directions_run;
-      case SensorType.angularVelocity:
-        return Icons.rotate_right;
-    }
+    return builder(sensor);
   }
 }

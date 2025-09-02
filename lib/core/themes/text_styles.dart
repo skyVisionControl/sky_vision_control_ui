@@ -91,4 +91,9 @@ class TextStyles {
     fontWeight: FontWeight.w500,
     color: AppColors.textSecondary,
   );
+  static const TextStyle gaugeValueDark = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: AppColors.textPrimaryDark,
+  );
 }

@@ -5,7 +5,7 @@
 
 class AppConstants {
   // Uygulama Adı
-  static const String appName = "Kapadokya Balon Kaptanları";
+  static const String appName = "Sky Vision Control";
 
   // API URL'leri (Mock şimdilik)
   static const String baseUrl = "https://api.example.com";
