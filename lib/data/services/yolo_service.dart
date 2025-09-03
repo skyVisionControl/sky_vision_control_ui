@@ -11,7 +11,7 @@ class YoloService {
   Future<void> ensureLoaded() async {
     if (_yolo != null) return;
     _yolo = YOLO(
-      modelPath: 'yolo11n',     // assets/models/yolo11n.tflite => "yolo11n"
+      modelPath: 'breathalyzer', // ✅ sadece dosya adı, uzantısız
       task: YOLOTask.detect,
       useGpu: false,
     );

@@ -78,9 +78,8 @@ flutter:
 
   assets:
     - assets/images/
-    - assets/icons/
-    - assets/lottie/
     - assets/mobile_face_net.tflite
+    - assets/models/person_counter.tflite
 
   fonts:
     - family: Poppins

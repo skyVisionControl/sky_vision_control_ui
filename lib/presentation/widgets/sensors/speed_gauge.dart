@@ -19,9 +19,21 @@ class SpeedGauge extends StatelessWidget {
         axes: [
           RadialAxis(
             minimum: 0,
-            maximum: 120,
-            startAngle: 180,
-            endAngle: 0,
+            maximum: 90,
+            startAngle: 120,
+            endAngle: 60,
+            minorTickStyle: MinorTickStyle(
+              length: 0.04,
+              thickness: 2,
+              lengthUnit: GaugeSizeUnit.factor,
+              color: Colors.red,
+            ),
+            majorTickStyle: MajorTickStyle(
+              length: 0.06,
+              thickness: 3,
+              lengthUnit: GaugeSizeUnit.factor,
+              color: AppColors.textPrimaryDark,
+            ),
             axisLabelStyle: GaugeTextStyle(
               color: AppColors.textPrimaryDark,
             ),
@@ -32,7 +44,7 @@ class SpeedGauge extends StatelessWidget {
             pointers: [
               NeedlePointer(
                 value: sensor.value,
-                needleColor: AppColors.primary,
+                needleColor: AppColors.temperatureGauge,
                 knobStyle: const KnobStyle(color: Colors.white),
               ),
             ],
