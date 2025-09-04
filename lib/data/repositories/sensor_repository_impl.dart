@@ -1,5 +1,5 @@
-import 'package:kapadokya_balon_app/data/services/firebase_rtdb_service.dart';
-import '../../domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/data/services/flight/firebase_rtdb_service.dart';
+import '../../domain/entities/flight/sensor_data.dart';
 import '../../domain/repositories/sensor_repository.dart';
 import '../models/telemetry_data_model.dart';
 

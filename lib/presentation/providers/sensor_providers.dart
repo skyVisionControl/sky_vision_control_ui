@@ -2,7 +2,7 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_database/firebase_database.dart';
-import '../../data/services/firebase_rtdb_service.dart';
+import '../../data/services/flight/firebase_rtdb_service.dart';
 import '../../data/repositories/sensor_repository_impl.dart';
 import '../../domain/usecases/sensor/get_all_sensor_data_usecase.dart';
 import '../../domain/usecases/sensor/observe_sensor_data_usecase.dart';

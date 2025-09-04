@@ -1,7 +1,7 @@
 // widgets/sensors/humidity_gauge.dart
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 import '../../../core/themes/app_colors.dart';
 import '../../../core/themes/text_styles.dart';
 

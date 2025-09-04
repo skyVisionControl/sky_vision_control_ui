@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/entities/sensor_data.dart';
+import '../../domain/entities/flight/sensor_data.dart';
 import '../../domain/usecases/sensor/get_all_sensor_data_usecase.dart';
 import '../../domain/usecases/sensor/observe_sensor_data_usecase.dart';
 

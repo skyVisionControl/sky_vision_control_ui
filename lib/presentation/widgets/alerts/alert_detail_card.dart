@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 
 class AlertDetailCard extends StatelessWidget {
   final Alert alert;

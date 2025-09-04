@@ -9,7 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 import 'package:kapadokya_balon_app/presentation/providers/flight_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.dart';

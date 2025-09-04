@@ -14,7 +14,7 @@
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 
 
 class ApprovalStatusCard extends StatelessWidget {

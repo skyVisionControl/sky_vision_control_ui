@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 import 'package:kapadokya_balon_app/domain/usecases/alert/get_active_alerts_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/alert/observe_alerts_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/flight/end_flight_usecase.dart';

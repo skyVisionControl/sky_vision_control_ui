@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 
 class AccelPressureAltitudeDisplay extends StatelessWidget {
   final SensorData? acceleration;

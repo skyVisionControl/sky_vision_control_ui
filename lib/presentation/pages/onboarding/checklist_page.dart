@@ -9,7 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:kapadokya_balon_app/core/constants/route_constants.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
-import 'package:kapadokya_balon_app/domain/entities/checklist_item.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/checklist_item.dart';
 import 'package:kapadokya_balon_app/presentation/providers/onboarding_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indicator.dart';
@@ -17,7 +17,9 @@ import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.da
 import '../../../utils/id_generator.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/breathalyzer_providers.dart';
+import '../../providers/fire_detection_providers.dart';
 import '../../providers/firebase_providers.dart';
+import '../../providers/common_providers.dart'; // Ortak provider'ları import et
 
 class ChecklistPage extends ConsumerStatefulWidget {
   const ChecklistPage({Key? key}) : super(key: key);
@@ -478,7 +480,7 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       final flightService = ref.read(firebaseFlightServiceProvider);
       final breathalyzerService = ref.read(firebaseBreathalyzerServiceProvider);
 
-      // ✅ RTDB'de telemetriyi gönderen kullanıcı ID’yi belirle
+      // ✅ RTDB'de telemetriyi gönderen kullanıcı ID'yi belirle
       // Eğer telemetriyi farklı bir cihaz/UID gönderiyorsa burada o UID'yi kullan.
       final telemetryUserId = captainId; // veya 'k1EJQXvcsydXeREjLunVwHPE9wr2'
 
@@ -514,6 +516,10 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
 
       // ✅ 5) Uygulama genelinde aktif flightId'yi set et
       ref.read(currentFlightIdProvider.notifier).state = flightId;
+
+      // ✅ 6) Yangın algılama servisini başlat
+      await ref.read(startFireDetectionServiceUseCaseProvider).execute(flightId);
+      print('Fire detection service started for flight: $flightId');
 
       print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
     } catch (e) {

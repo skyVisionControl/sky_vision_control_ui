@@ -1,6 +1,6 @@
 // widgets/sensors/temperature_gauge.dart
 import 'package:flutter/material.dart';
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 import '../../../core/themes/text_styles.dart';
 import '../../../core/themes/app_colors.dart';
 

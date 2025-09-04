@@ -22,3 +22,10 @@ String generateBreathalyzerId(String captainId) {
   // captainId-breathalyzer-YYYYMMDD-HHMMSS formatında ID
   return "$captainId-breathalyzer-$dateTime";
 }
+
+/// Yangın algılama ihlali ID'si oluştur
+String generateViolationId(String flightId, String violationType) {
+
+  // flightId-violationType-YYYYMMDD-HHMMSS formatında ID
+  return "$flightId-$violationType-$dateTime";
+}

@@ -16,6 +16,8 @@ import 'package:kapadokya_balon_app/presentation/viewmodels/flight_view_model.da
 import 'package:kapadokya_balon_app/presentation/providers/firebase_providers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'common_providers.dart';
+
 // ✅ FlightDataSource artık Firestore'dan
 final flightDataSourceProvider = Provider<FlightDataSource>((ref) {
   final firestore = ref.watch(firestoreProvider);

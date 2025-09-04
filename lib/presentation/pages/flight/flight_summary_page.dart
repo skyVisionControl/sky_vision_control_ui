@@ -13,13 +13,13 @@ import 'package:kapadokya_balon_app/core/constants/route_constants.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
 import 'package:kapadokya_balon_app/presentation/providers/flight_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indicator.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.dart';
 
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 
 class FlightSummaryPage extends ConsumerStatefulWidget {
   const FlightSummaryPage({Key? key}) : super(key: key);

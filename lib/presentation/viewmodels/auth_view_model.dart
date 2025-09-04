@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kapadokya_balon_app/domain/entities/user.dart';
+import 'package:kapadokya_balon_app/domain/entities/auth/user.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/get_current_user_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/observe_user_changes_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/auth/reset_password_usecase.dart';

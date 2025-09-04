@@ -3,8 +3,8 @@
 // Onboarding süreci için view model.
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:kapadokya_balon_app/domain/entities/checklist_item.dart';
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/checklist_item.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_alcohol_test_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_checklist_usecase.dart';
 import 'package:kapadokya_balon_app/domain/usecases/onboarding/complete_face_recognition_usecase.dart';

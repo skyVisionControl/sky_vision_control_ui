@@ -2,7 +2,7 @@
 //
 // ChecklistItem entity'sinin data layer modeli.
 
-import 'package:kapadokya_balon_app/domain/entities/checklist_item.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/checklist_item.dart';
 
 class ChecklistItemModel extends ChecklistItem {
   const ChecklistItemModel({

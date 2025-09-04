@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import '../../domain/entities/sensor_data.dart';
+import '../../domain/entities/flight/sensor_data.dart';
 
 class TelemetryDataModel {
   final BmeDataModel? bme;
@@ -126,7 +126,7 @@ class TelemetryDataModel {
     // Yükseklik (GPS'ten, yoksa ms.alt_press'ten hesapla)
     double? altitude;
     if (gps?.alt != null) {
-      altitude = gps!.alt!.toDouble();
+      altitude = gps!.alt!; // Artık double olduğu için toDouble() gerekmiyor
     } else if (ms?.press != null) {
       altitude = _calculateAltitude(ms!.press!);
     }
@@ -146,11 +146,11 @@ class TelemetryDataModel {
     if (gps?.speed != null) {
       sensorDataList.add(SensorData(
         type: SensorType.speed,
-        value: gps!.speed!.toDouble(),
+        value: gps!.speed!, // Artık double olduğu için toDouble() gerekmiyor
         minValue: 0.0,
         maxValue: 100.0,
         unit: 'km/h',  // Varsayım, birim değiştirilebilir
-        alertLevel: _getSpeedAlertLevel(gps!.speed!.toDouble()),
+        alertLevel: _getSpeedAlertLevel(gps!.speed!),
         timestamp: now,
       ));
     }
@@ -159,8 +159,8 @@ class TelemetryDataModel {
     if (gps?.lati != null && gps?.long != null) {
       sensorDataList.add(SensorData(
         type: SensorType.gpsPosition,
-        value: gps!.lati!.toDouble(),
-        secondaryValue: gps!.long!.toDouble(),
+        value: gps!.lati!, // Artık double olduğu için toDouble() gerekmiyor
+        secondaryValue: gps!.long!, // Artık double olduğu için toDouble() gerekmiyor
         minValue: -90.0,
         maxValue: 90.0,
         unit: 'Lat/Lon',
@@ -253,9 +253,17 @@ class BmeDataModel {
 
   factory BmeDataModel.fromJson(Map<String, dynamic> json) {
     return BmeDataModel(
-      hum: json['hum']?.toDouble(),
-      tempC: json['tempC']?.toDouble(),
+      hum: _parseToDouble(json['hum']),
+      tempC: _parseToDouble(json['tempC']),
     );
+  }
+
+  static double? _parseToDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -267,10 +275,10 @@ class BmeDataModel {
 }
 
 class GpsDataModel {
-  final int? alt;
-  final int? lati;
-  final int? long;
-  final int? speed;
+  final double? alt;     // int'ten double'a değiştirildi
+  final double? lati;    // int'ten double'a değiştirildi
+  final double? long;    // int'ten double'a değiştirildi
+  final double? speed;   // int'ten double'a değiştirildi
   final String? time;
 
   GpsDataModel({
@@ -283,12 +291,21 @@ class GpsDataModel {
 
   factory GpsDataModel.fromJson(Map<String, dynamic> json) {
     return GpsDataModel(
-      alt: json['alt'],
-      lati: json['lati'],
-      long: json['long'],
-      speed: json['speed'],
+      alt: _parseToDouble(json['alt']),
+      lati: _parseToDouble(json['lati']),
+      long: _parseToDouble(json['long']),
+      speed: _parseToDouble(json['speed']),
       time: json['time'],
     );
+  }
+
+  // Güvenli dönüşüm için yardımcı metod
+  static double? _parseToDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -314,11 +331,46 @@ class MpuDataModel {
   });
 
   factory MpuDataModel.fromJson(Map<String, dynamic> json) {
+    // Daha güvenli veri dönüşümü için yeni mantık
+    List<double>? parseDoubleList(dynamic value) {
+      if (value == null) return null;
+
+      try {
+        // Eğer value bir List ise
+        if (value is List) {
+          return value.map((item) => _parseToDouble(item) ?? 0.0).toList();
+        }
+        // Eğer value bir Map ise
+        else if (value is Map) {
+          final List<double> result = [];
+          for (var entry in value.entries) {
+            if (entry.value != null) {
+              result.add(_parseToDouble(entry.value) ?? 0.0);
+            }
+          }
+          return result;
+        }
+      } catch (e) {
+        print('Error parsing MPU data: $e, value: $value');
+      }
+
+      return null;
+    }
+
     return MpuDataModel(
-      accel: json['accel'] != null ? List<double>.from(json['accel'].map((x) => x.toDouble())) : null,
-      gyro: json['gyro'] != null ? List<double>.from(json['gyro'].map((x) => x.toDouble())) : null,
-      mag: json['mag'] != null ? List<double>.from(json['mag'].map((x) => x.toDouble())) : null,
+      accel: parseDoubleList(json['accel']),
+      gyro: parseDoubleList(json['gyro']),
+      mag: parseDoubleList(json['mag']),
     );
+  }
+
+  // Yardımcı metod
+  static double? _parseToDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -341,9 +393,17 @@ class MsDataModel {
 
   factory MsDataModel.fromJson(Map<String, dynamic> json) {
     return MsDataModel(
-      alt_press: json['alt_press']?.toDouble(),
-      press: json['press']?.toDouble(),
+      alt_press: _parseToDouble(json['alt_press']),
+      press: _parseToDouble(json['press']),
     );
+  }
+
+  static double? _parseToDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value);
+    return null;
   }
 
   Map<String, dynamic> toJson() {

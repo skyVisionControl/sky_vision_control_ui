@@ -2,7 +2,7 @@
 //
 // OnboardingStatus entity'sinin data layer modeli.
 
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 
 class OnboardingStatusModel extends OnboardingStatus {
   const OnboardingStatusModel({

@@ -4,8 +4,8 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:kapadokya_balon_app/core/error/failures.dart';
-import 'package:kapadokya_balon_app/domain/entities/checklist_item.dart';
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/checklist_item.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 
 abstract class OnboardingRepository {
   /// Mevcut onboarding durumunu getirir

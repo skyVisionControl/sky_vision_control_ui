@@ -4,7 +4,7 @@
 
 import 'package:kapadokya_balon_app/data/models/checklist_item_model.dart';
 import 'package:kapadokya_balon_app/data/models/onboarding_status_model.dart';
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 
 import 'checklist_data.dart';
 

@@ -7,8 +7,8 @@ import 'package:kapadokya_balon_app/core/error/failures.dart';
 import 'package:kapadokya_balon_app/core/utils/logger.dart';
 import 'package:kapadokya_balon_app/data/datasources/onboarding_data_source.dart';
 import 'package:kapadokya_balon_app/data/models/checklist_item_model.dart';
-import 'package:kapadokya_balon_app/domain/entities/checklist_item.dart';
-import 'package:kapadokya_balon_app/domain/entities/onboarding_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/checklist_item.dart';
+import 'package:kapadokya_balon_app/domain/entities/onboarding/onboarding_status.dart';
 import 'package:kapadokya_balon_app/domain/repositories/onboarding_repository.dart';
 
 class OnboardingRepositoryImpl implements OnboardingRepository {

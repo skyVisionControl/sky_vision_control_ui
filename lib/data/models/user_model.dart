@@ -2,7 +2,7 @@
 //
 // Kullanıcı bilgilerini tutan model sınıfı.
 
-import 'package:kapadokya_balon_app/domain/entities/user.dart';
+import 'package:kapadokya_balon_app/domain/entities/auth/user.dart';
 
 class UserModel extends User {
   const UserModel({

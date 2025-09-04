@@ -2,7 +2,7 @@
 //
 // Uçuş durumunun akışını izleyen use case.
 
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
 import 'package:kapadokya_balon_app/domain/repositories/flight_repository.dart';
 
 class ObserveFlightStatusUseCase {

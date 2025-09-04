@@ -2,10 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/services/firebase_checklist_service.dart';
-import '../../data/services/firebase_flight_service.dart';
-import '../../data/services/firebase_captain_service.dart';
-import '../../data/services/firebase_breathalyzer_service.dart';
+import '../../data/services/onboarding/firebase_checklist_service.dart';
+import '../../data/services/flight/firebase_flight_service.dart';
+import '../../data/services/auth/firebase_captain_service.dart';
+import '../../data/services/onboarding/breathalyzer/firebase_breathalyzer_service.dart';
 
 // Firebase instance provider
 final firebaseFirestoreProvider = Provider<FirebaseFirestore>((ref) {
@@ -48,10 +48,9 @@ final firestoreProvider = Provider<FirebaseFirestore>((ref) {
 
 final rtdbEuProvider = Provider<FirebaseDatabase>((ref) {
   return FirebaseDatabase.instanceFor(
-    databaseURL: 'https://sky-vision-control-5ca1b-default-rtdb.europe-west1.firebasedatabase.app', app: FirebaseDatabase.instance.app,
+    databaseURL: 'https://sky-vision-control-5ca1b-default-rtdb.europe-west1.firebasedatabase.app',
+    app: FirebaseDatabase.instance.app,
   );
 });
 
-// Uygulama akışında o an aktif olan uçuşun kimliği.
-// Checklist tamamlandıktan sonra set edilecek.
-final currentFlightIdProvider = StateProvider<String?>((ref) => null);
+// currentFlightIdProvider common_providers.dart dosyasına taşındı

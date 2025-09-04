@@ -5,8 +5,8 @@
 import 'package:dartz/dartz.dart';
 import 'package:kapadokya_balon_app/core/error/failures.dart';
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 
 abstract class FlightRepository {
   /// Mevcut uçuş durumunu getirir

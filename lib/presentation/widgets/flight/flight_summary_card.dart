@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
 
 class FlightSummaryCard extends StatelessWidget {
   final FlightStatus flightStatus;

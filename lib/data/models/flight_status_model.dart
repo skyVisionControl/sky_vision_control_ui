@@ -1,6 +1,6 @@
 // lib/data/models/flight_status_model.dart
 import 'package:cloud_firestore/cloud_firestore.dart'; // ✅ Timestamp için
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
 
 class FlightStatusModel extends FlightStatus {
   const FlightStatusModel({

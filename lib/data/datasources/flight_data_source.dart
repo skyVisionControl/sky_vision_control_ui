@@ -1,8 +1,8 @@
 // lib/data/datasources/flight_data_source.dart
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/flight_status.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/flight_status.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 import '../models/flight_status_model.dart';
 
 abstract class FlightDataSource {

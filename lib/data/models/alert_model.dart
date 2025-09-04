@@ -3,7 +3,7 @@
 // Alert entity'sinin data layer modeli.
 
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 
 class AlertModel extends Alert {
   const AlertModel({

@@ -5,10 +5,10 @@ import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image/image.dart' as img;
-import '../../domain/entities/detection.dart';
-import '../../data/services/ocr_service.dart';
-import '../../data/services/yolo_service.dart';
-import '../../data/services/firebase_breathalyzer_service.dart';
+import '../../domain/entities/onboarding/alcohol_detection.dart';
+import '../../data/services/onboarding/breathalyzer/ocr_service.dart';
+import '../../data/services/onboarding/breathalyzer/yolo_service.dart';
+import '../../data/services/onboarding/breathalyzer/firebase_breathalyzer_service.dart';
 
 enum BreathalyzerStepState { idle, scanning, bothFound, displayFound, done, error }
 

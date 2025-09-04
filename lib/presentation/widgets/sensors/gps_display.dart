@@ -1,6 +1,6 @@
 // widgets/sensors/gps_display.dart
 import 'package:flutter/material.dart';
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 import '../../../core/themes/text_styles.dart';
 
 class GpsDisplay extends StatelessWidget {

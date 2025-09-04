@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 import 'package:kapadokya_balon_app/domain/entities/alert.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 import 'package:kapadokya_balon_app/presentation/providers/flight_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/alerts/alert_detail_card.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indicator.dart';

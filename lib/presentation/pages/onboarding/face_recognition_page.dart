@@ -18,7 +18,7 @@ import 'package:kapadokya_balon_app/core/themes/app_colors.dart';
 import 'package:kapadokya_balon_app/core/themes/text_styles.dart';
 import 'package:kapadokya_balon_app/data/models/face_match.dart';
 import 'package:kapadokya_balon_app/data/models/face_user.dart';
-import 'package:kapadokya_balon_app/data/services/face_recognition_service.dart';
+import 'package:kapadokya_balon_app/data/services/onboarding/face_recognition_service.dart';
 import 'package:kapadokya_balon_app/presentation/providers/onboarding_providers.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/dialogs/app_dialogs.dart';

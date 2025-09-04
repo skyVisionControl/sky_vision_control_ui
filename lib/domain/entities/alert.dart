@@ -3,7 +3,7 @@
 // Uçuş sırasında oluşan uyarı ve alarmları temsil eden entity.
 
 import 'package:equatable/equatable.dart';
-import 'package:kapadokya_balon_app/domain/entities/sensor_data.dart';
+import 'package:kapadokya_balon_app/domain/entities/flight/sensor_data.dart';
 
 class Alert extends Equatable {
   final String id;

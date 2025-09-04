@@ -1,4 +1,4 @@
-import '../../entities/sensor_data.dart';
+import '../../entities/flight/sensor_data.dart';
 import '../../repositories/sensor_repository.dart';
 
 class GetAllSensorDataUseCase {

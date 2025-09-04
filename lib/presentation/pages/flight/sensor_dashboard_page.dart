@@ -1,7 +1,7 @@
 // sensor_dashboard_page.dart (güvenli tam sürüm)
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../domain/entities/sensor_data.dart';
+import '../../../domain/entities/flight/sensor_data.dart';
 import '../../providers/flight_providers.dart';
 
 // import ettiğimiz özel widget'lar

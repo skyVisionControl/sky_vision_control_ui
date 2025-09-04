@@ -1,4 +1,4 @@
-import '../entities/sensor_data.dart';
+import '../entities/flight/sensor_data.dart';
 
 abstract class SensorRepository {
   Future<List<SensorData>> getSensorData(String userId);
