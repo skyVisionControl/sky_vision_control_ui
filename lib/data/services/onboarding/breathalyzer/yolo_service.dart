@@ -1,25 +1,26 @@
+// lib/data/services/onboarding/breathalyzer/yolo_service.dart
 import 'dart:typed_data';
-import 'package:ultralytics_yolo/yolo.dart';
+import '../../yolo_wrapper.dart'; // yolo_wrapper.dart'ı import et (dosya yoluna göre ayarlayın)
 
-/// YOLO (You Only Look Once) servisi - Görüntüde nesne tespiti yapar
 class YoloService {
   YoloService._();
   static final YoloService instance = YoloService._();
 
-  YOLO? _yolo;
+  YoloWrapper? _yoloWrapper;
 
   Future<void> ensureLoaded() async {
-    if (_yolo != null) return;
-    _yolo = YOLO(
-      modelPath: 'breathalyzer', // ✅ sadece dosya adı, uzantısız
-      task: YOLOTask.detect,
-      useGpu: false,
-    );
-    await _yolo!.loadModel();
+    if (_yoloWrapper != null) return;
+    _yoloWrapper = YoloWrapper();
+    await _yoloWrapper!.loadModel('breathalyzer', useGpu: false);
   }
 
   Future<Map<String, dynamic>> predict(Uint8List bytes) async {
     await ensureLoaded();
-    return await _yolo!.predict(bytes);
+    return await _yoloWrapper!.predict(bytes);
+  }
+
+  Future<void> dispose() async {
+    _yoloWrapper?.dispose();
+    _yoloWrapper = null;
   }
 }

@@ -27,7 +27,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.kapadokya_balon_app"
-        minSdk = 23
+        minSdk = 24
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName

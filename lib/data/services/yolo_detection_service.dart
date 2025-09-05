@@ -1,7 +1,8 @@
+// lib/data/services/yolo_detection_service.dart
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui show Rect;
-import 'package:ultralytics_yolo/yolo.dart';
+import 'yolo_wrapper.dart'; // yolo_wrapper.dart'ı import et (dosya yoluna göre ayarlayın)
 
 /// Tek tespit nesnesi
 class Detection {
@@ -25,8 +26,8 @@ class YoloDetectionService {
   final String modelAssetName; // örn: 'yolo8n.tflite'
   final List<String>? classNames;  // örn: ['fire','smoke']
 
-  YOLO? _yolo;
-  bool get isLoaded => _yolo != null;
+  YoloWrapper? _yoloWrapper;
+  bool get isLoaded => _yoloWrapper != null;
 
   YoloDetectionService({
     required this.modelAssetName,
@@ -35,15 +36,11 @@ class YoloDetectionService {
 
   /// Modeli yükle (paket uygun delege bulamazsa CPU'ya düşer)
   Future<void> load() async {
-    if (_yolo != null) return; // Zaten yüklenmişse tekrar yükleme
+    if (_yoloWrapper != null) return; // Zaten yüklenmişse tekrar yükleme
 
-    _yolo = YOLO(
-      modelPath: modelAssetName, // sadece dosya adı
-      task: YOLOTask.detect,
-      useGpu: true,
-    );
-    await _yolo!.loadModel();
-    print('YOLO model loaded: $modelAssetName');
+    _yoloWrapper = YoloWrapper();
+    await _yoloWrapper!.loadModel(modelAssetName, useGpu: false); // GPU yok, false yap
+    print('✅ YOLO model loaded: $modelAssetName');
   }
 
   /// Dosyadan tahmin
@@ -60,12 +57,11 @@ class YoloDetectionService {
       Uint8List imageBytes, {
         double? confThreshold, // 0..1
       }) async {
-    if (_yolo == null) {
+    if (_yoloWrapper == null) {
       await load();
     }
 
-    final Map<String, dynamic>? out =
-    await _yolo!.predict(imageBytes) as Map<String, dynamic>?;
+    final Map<String, dynamic>? out = await _yoloWrapper!.predict(imageBytes);
 
     final List<dynamic> boxes = (out?['boxes'] ?? const []) as List<dynamic>;
     final results = <Detection>[];
@@ -112,10 +108,12 @@ class YoloDetectionService {
       results.add(Detection(label: label, confidence: conf, box: rect));
     }
 
+    print('📦 YOLO boxes=${boxes.length}, results=${results.length}');
     return results;
   }
 
   void dispose() {
-    _yolo = null;
+    _yoloWrapper?.dispose();
+    _yoloWrapper = null;
   }
 }

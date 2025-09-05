@@ -299,8 +299,16 @@ class BreathalyzerViewModel extends StateNotifier<BreathalyzerState> {
   @override
   void dispose() {
     _detectionTimer?.cancel();
+
+    // Kamera varsa kapat
     _cameraController?.dispose();
+
+    // OCR servisini kapat
     OcrService.instance.dispose();
+
+    // Breathalyzer YOLO servisini kapat
+    YoloService.instance.dispose();
+
     super.dispose();
   }
 }

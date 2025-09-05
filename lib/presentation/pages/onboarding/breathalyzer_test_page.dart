@@ -22,14 +22,23 @@ class BreathalyzerTestPage extends ConsumerStatefulWidget {
 }
 
 class _BreathalyzerTestPageState extends ConsumerState<BreathalyzerTestPage> {
+  late BreathalyzerViewModel _viewModel;
+
   @override
   void initState() {
     super.initState();
+    _viewModel = ref.read(breathalyzerViewModelProvider.notifier);
 
     // Widget ağacı oluştuktan sonra alkolmetre testini başlat
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeBreathalyzerTest();
     });
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose(); // ref olmadan çağır
+    super.dispose();
   }
 
   void _initializeBreathalyzerTest() async {
@@ -43,16 +52,10 @@ class _BreathalyzerTestPageState extends ConsumerState<BreathalyzerTestPage> {
         return;
       }
 
-      // ViewModel'ı al
-      final viewModel = ref.read(breathalyzerViewModelProvider.notifier);
-
       // Kaptan ID'si ile alkolmetre testini başlat
-      await viewModel.startBreathalyzerTest(
+      await _viewModel.startBreathalyzerTest(
         user.id, // Gerçek kaptan ID'si (Firebase Auth UID)
       );
-
-      // Eğer viewmodel'da flight ID'yi saklamak istiyorsanız
-      // viewModel.setFlightId(widget.flightId); // gibi bir metod ekleyebilirsiniz
 
     } catch (e) {
       print('Error initializing breathalyzer test: $e');
