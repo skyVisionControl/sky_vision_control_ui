@@ -33,4 +33,7 @@ class AppConstants {
   static const String connectionError = "Bağlantı hatası. Lütfen internet bağlantınızı kontrol edin.";
   static const String authError = "Kimlik doğrulama hatası. Lütfen tekrar deneyin.";
   static const String unknownError = "Bilinmeyen bir hata oluştu. Lütfen tekrar deneyin.";
+
+
+  static const String rtspUrl = 'rtsp://skyvision:sky123456@192.168.1.49:554/stream1';
 }

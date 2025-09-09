@@ -14,12 +14,14 @@ import 'package:kapadokya_balon_app/presentation/providers/onboarding_providers.
 import 'package:kapadokya_balon_app/presentation/widgets/buttons/app_button.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/loading_indicator.dart';
 import 'package:kapadokya_balon_app/presentation/widgets/feedback/app_message.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../utils/id_generator.dart';
 import '../../providers/auth_providers.dart';
 import '../../providers/breathalyzer_providers.dart';
 import '../../providers/fire_detection_providers.dart';
 import '../../providers/firebase_providers.dart';
-import '../../providers/common_providers.dart'; // Ortak provider'ları import et
+import '../../providers/common_providers.dart';
+import '../../providers/person_count_providers.dart'; // Ortak provider'ları import et
 
 class ChecklistPage extends ConsumerStatefulWidget {
   const ChecklistPage({Key? key}) : super(key: key);
@@ -520,6 +522,11 @@ class _ChecklistPageState extends ConsumerState<ChecklistPage> {
       // ✅ 6) Yangın algılama servisini başlat
       await ref.read(startFireDetectionServiceUseCaseProvider).execute(flightId);
       print('Fire detection service started for flight: $flightId');
+
+// ✅ 7) İnsan sayma servisini başlat (RTSP URL'i constants'tan al; yoksa hardcode)
+      final rtspUrl = AppConstants.rtspUrl; // app_constants.dart'e ekleyin: static const String rtspUrl = 'rtsp://your-url';
+      await ref.read(startPersonCountingUseCaseProvider(captainId)).execute(flightId, rtspUrl);
+      print('Person counting service started for flight: $flightId');
 
       print('Workflow completed successfully! Flight ID: $flightId, Checklist ID: $checklistId');
     } catch (e) {

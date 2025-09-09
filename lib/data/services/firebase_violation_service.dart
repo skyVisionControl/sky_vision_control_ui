@@ -52,4 +52,15 @@ class FirebaseViolationService extends FirebaseBaseService {
       rethrow;
     }
   }
+
+  Future<void> saveViolation(Map<String, dynamic> violationData) async {
+    try {
+      final violationsRef = FirebaseFirestore.instance.collection('violations');
+      await violationsRef.add(violationData);
+      print('Violation saved: ${violationData['id']}');
+    } catch (e) {
+      print('Error saving violation: $e');
+      rethrow;
+    }
+  }
 }

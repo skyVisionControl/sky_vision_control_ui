@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
 import '../../models/telemetry_data_model.dart';
+import '../../../domain/entities/person_count.dart'; // fromJson için
 
 class FirebaseRtdbService {
   final FirebaseDatabase _database;
@@ -65,6 +66,53 @@ class FirebaseRtdbService {
       },
       onError: (error) {
         print('Error observing telemetry data: $error');
+        controller.addError(error);
+      },
+    );
+
+    controller.onCancel = () {
+      subscription.cancel();
+    };
+
+    return controller.stream;
+  }
+
+  // Yeni: Person counter güncelle (count ve confidence)
+  Future<void> updatePersonCounter(String userId, int count, double confidence) async {
+    try {
+      await _database.ref().child(userId).child('personCounter').set({
+        'count': count,
+        'confidence': confidence,
+        'timestamp': ServerValue.timestamp, // Server-side timestamp (milisaniye)
+      });
+      print('Person counter updated in RTDB for user $userId: $count (conf: $confidence)');
+    } catch (e) {
+      print('Error updating person counter: $e');
+      rethrow;
+    }
+  }
+
+  // Yeni: Person counter observe (PersonCount? olarak)
+  Stream<PersonCount?> observePersonCounter(String userId) {
+    final controller = StreamController<PersonCount?>();
+
+    final subscription = _database
+        .ref()
+        .child(userId)
+        .child('personCounter')
+        .onValue
+        .listen(
+          (event) {
+        if (event.snapshot.exists) {
+          final convertedData = _convertFirebaseData(event.snapshot.value);
+          final data = PersonCount.fromJson(convertedData as Map<String, dynamic>);
+          controller.add(data);
+        } else {
+          controller.add(null);
+        }
+      },
+      onError: (error) {
+        print('Error observing person counter: $error');
         controller.addError(error);
       },
     );
